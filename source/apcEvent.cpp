@@ -3,7 +3,7 @@
 // --------------------------------------------------------
 //	apcEvent.h のメンバ関数の実体を置く
 // --------------------------------------------------------
-#include "Apocalypse.h"
+#include "Apocalypse.hpp"
 
 // ----------------------------------------------------
 //	EventHandleList
@@ -13,27 +13,19 @@
 void			__EventHandleList::_ArrayCheck() const
 {
 	// イテレータを用意する
-	std::list<std::shared_ptr<EventHandle>>::const_iterator Iterator = _EventItems.begin();
+	auto Iterator = _EventItems.begin();
 	// ------------------------------------
-	// 例外を捉える
-	try{
-		// 順番に見ていく
-		while(Iterator != _EventItems.end()){
-			// 取得する
-			EventHandle* eHandle = *Iterator;
-			// イベント条件を満たしているかどうか確認
-			if(eHandle->_ContinueFlag || eHandle->_Type()){
-				// 起こってるならイベントの関数を実行．
-				eHandle->_ContinueFlag = !eHandle->_Function();
-			}
-			// 次のものを見る
-			Iterator++;
+	// 順番に見ていく
+	while(Iterator != _EventItems.end()){
+		// 取得する
+		auto eHandle = *Iterator;
+		// イベント条件を満たしているかどうか確認
+		if(eHandle->_ContinueFlag || eHandle->_Type()){
+			// 起こってるならイベントの関数を実行．
+			eHandle->_ContinueFlag = !eHandle->_Function();
 		}
-	}
-	// 捕捉
-	catch(Sequencer* Sq){
-		// 消す
-		delete Sq;
+		// 次のものを見る
+		Iterator++;
 	}
 }
 
@@ -53,18 +45,6 @@ std::shared_ptr<EventHandle>
 // ----------------------------------------------------
 				__EventHandleList::~__EventHandleList()
 {
-	// イテレータを用意する
-	std::list<std::shared_ptr<EventHandle>>::const_iterator Iterator = _EventItems.begin();
-	// ------------------------------------
-	// 順番に見ていく
-	while(Iterator != _EventItems.end()){
-		// 取得する
-		EventHandle* eHandle = *Iterator;
-		// deleteする
-		delete eHandle;
-		// 次のものを見る
-		Iterator++;
-	}
 	// 中身を全て消す
 	_EventItems.clear();
 }

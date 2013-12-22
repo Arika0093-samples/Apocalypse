@@ -8,4 +8,4 @@
 //	名前空間を全て使用する
 #define APOCALYPSE_USEALLNAMESPACE
 //	Includeする
-#include "Apocalypse.h"
+#include "Apocalypse.hpp"

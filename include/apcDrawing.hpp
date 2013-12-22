@@ -11,10 +11,9 @@
 // --------------------------------------------------------
 #include <Windows.h>
 #include <dxlib/DxLib.h>
-#include <include/apcClassBase.h>
-#include <include/apcCollection.h>
-#include <include/apxEnum.h>
-#include <include/apxTemplate.h>
+#include <include/apcClassBase.hpp>
+#include <include/apcCollection.hpp>
+#include <include/apxTemplate.hpp>
 
 // --------------------------------------------------------
 //	–¼‘O‹óŠÔ‚ðŽg—p(Apocalypse::Draw)

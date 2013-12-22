@@ -11,9 +11,9 @@
 // --------------------------------------------------------
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
-#include <include/apcClassBase.h>
-#include <include/apcEvent.h>
-#include <include/apxTemplate.h>
+#include <include/apcClassBase.hpp>
+#include <include/apcEvent.hpp>
+#include <include/apxTemplate.hpp>
 
 // --------------------------------------------------------
 //	名前空間を使用(Apocalypse::Sequence)
@@ -53,7 +53,17 @@ namespace Apocalypse
 			///		現在のシーケンスクラスを，引数に渡されたシーケンスに変更します．
 			/// </remarks>
 			///	<param name = "To">
-			///		制御を移動させる先のシーケンス．newで移動先を確保して渡す．<br />
+			///		制御を移動させる先のシーケンス．newで移動先を確保して渡す．
+			///	</param>
+			void				Move(std::shared_ptr<Sequencer> To);
+			///	<summary>
+			///		別のシーケンスに制御を移動させる用の関数．
+			///	</summary>
+			/// <remarks>
+			///		現在のシーケンスクラスを，引数に渡されたシーケンスに変更します．
+			/// </remarks>
+			///	<param name = "To">
+			///		制御を移動させる先のシーケンス．newで移動先を確保して渡す．
 			///	</param>
 			/// <example>
 			///		使用例: 
@@ -66,7 +76,7 @@ namespace Apocalypse
 			///		}
 			///		</code>
 			/// </example>
-			void				Move(std::shared_ptr<Sequencer> To);
+			void				Move(Sequencer *To);
 			///	<summary>
 			///		現在のシーケンスに新しくシーケンスを重ねる．
 			///	</summary>
@@ -75,7 +85,18 @@ namespace Apocalypse
 			///		<para>Addで追加したシーケンスを破棄したいときは DeleteSequence(); を使用します．</para>
 			/// </remarks>
 			///	<param name = "To">
-			///		制御を移動させる先のシーケンス．newで移動先を確保して渡す．<br />
+			///		制御を移動させる先のシーケンス．newで移動先を確保して渡す．
+			///	</param>
+			void				Add(std::shared_ptr<Sequencer> To);
+			///	<summary>
+			///		現在のシーケンスに新しくシーケンスを重ねる．
+			///	</summary>
+			/// <remarks>
+			///		<para>現在のシーケンスクラスをそのままに，一つ上にシーケンスを載せて制御を移動します．</para>
+			///		<para>Addで追加したシーケンスを破棄したいときは DeleteSequence(); を使用します．</para>
+			/// </remarks>
+			///	<param name = "To">
+			///		制御を移動させる先のシーケンス．newで移動先を確保して渡す．
 			///	</param>
 			/// <example>
 			///		使用例: 
@@ -88,7 +109,7 @@ namespace Apocalypse
 			///		}
 			///		</code>
 			/// </example>
-			void				Add(std::shared_ptr<Sequencer> To);
+			void				Add(Sequencer *To);
 			///	<summary>
 			///		現在のシーケンスを終了させる．
 			///	</summary>

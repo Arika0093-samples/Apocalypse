@@ -12,9 +12,9 @@
 #include <Windows.h>
 #include <dxlib/DxLib.h>
 #include <boost/function.hpp>
-#include <include/apcClassBase.h>
-#include <include/apcSequence.h>
-#include <include/apxTemplate.h>
+#include <include/apcClassBase.hpp>
+#include <include/apcSequence.hpp>
+#include <include/apxTemplate.hpp>
 
 // --------------------------------------------------------
 //	defineマクロを使用する

@@ -1,5 +1,5 @@
 // ----------------------------------------------------
-//	Apocalypse.h
+//	Apocalypse.hpp
 //							Copyright (C) 2013 Arika.
 // ----------------------------------------------------
 //	Apocalypseの全機能を使用するのにincludeするヘッダーです．
@@ -17,46 +17,43 @@
 //	Include(定義関連)
 // ----------------------------------------------------
 //	基底クラス(名前空間: Apocalypse::Base)
-#include "include/apcClassBase.h"
+#include "include/apcClassBase.hpp"
 // ----------------------------------------------------
 //	テンプレートクラス(名前空間: Apocalypse::Template)
-#include "include/apxTemplate.h"
-// ----------------------------------------------------
-//	定数列挙クラス(名前空間: Apocalypse::Enum)
-#include "include/apxEnum.h"
+#include "include/apxTemplate.hpp"
 // ----------------------------------------------------
 //	ヘルプファイル作成用ヘッダー
-#include "include/apxDoxygen.h"
+#include "include/apxDoxygen.hpp"
 
 // ----------------------------------------------------
 //	Include(クラス関連)
 // ----------------------------------------------------
 //	イベントクラス(名前空間: Apocalypse::Event)
-#include "include/apcEvent.h"
+#include "include/apcEvent.hpp"
 // ----------------------------------------------------
 //	要素管理クラス(名前空間: Apocalypse::Collection)
-#include "include/apcCollection.h"
+#include "include/apcCollection.hpp"
 // ----------------------------------------------------
 //	入力管理クラス(名前空間: Apocalypse::Input)
-#include "include/apcInput.h"
+#include "include/apcInput.hpp"
 // ----------------------------------------------------
 //	シーケンスクラス(名前空間: Apocalypse::Sequence)
-#include "include/apcSequence.h"
+#include "include/apcSequence.hpp"
 // ----------------------------------------------------
 //	描画クラス(名前空間: Apocalypse::Draw)
-#include "include/apcDrawing.h"
+#include "include/apcDrawing.hpp"
 // ----------------------------------------------------
 //	音声クラス(名前空間: Apocalypse::Sound)
-//#include "include/apcSound.h"
+//#include "include/apcSound.hpp"
 // ----------------------------------------------------
 //	数式クラス(名前空間: Apocalypse::Expression)
-//#include "include/apcExpression.h"
+//#include "include/apcExpression.hpp"
 // ----------------------------------------------------
 //	システム管理クラス(名前空間: Apocalypse::System)
-#include "include/apcSystem.h"
+#include "include/apcSystem.hpp"
 // ----------------------------------------------------
 //	UI描画/管理クラス(名前空間: Apocalypse::UI)
-//#include "include/apcInterface.h"
+//#include "include/apcInterface.hpp"
 
 // ----------------------------------------------------
 //	libファイル読み込み

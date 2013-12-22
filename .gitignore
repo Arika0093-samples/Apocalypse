@@ -53,6 +53,8 @@ ipch/
 *.opensdf
 *.sdf
 *.cachefile
+*.gitignore
+*.gitattributes
 
 # Visual Studio profiler
 *.psess
