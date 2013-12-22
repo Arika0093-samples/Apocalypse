@@ -12,8 +12,8 @@
 #include <list>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
-#include <include/apcClassBase.h>
-#include <include/apcInput.h>
+#include <include/apcClassBase.hpp>
+#include <include/apcInput.hpp>
 
 // --------------------------------------------------------
 //	defineマクロを使用する

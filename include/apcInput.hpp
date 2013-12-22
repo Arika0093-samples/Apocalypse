@@ -10,8 +10,8 @@
 //	必要なヘッダーを読み込む
 // --------------------------------------------------------
 #include <set>
-#include <include/apcClassBase.h>
-#include <include/apxTemplate.h>
+#include <include/apcClassBase.hpp>
+#include <include/apxTemplate.hpp>
 
 // --------------------------------------------------------
 //	名前空間を使用(Apocalypse::Input)

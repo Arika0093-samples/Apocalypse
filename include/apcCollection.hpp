@@ -11,9 +11,8 @@
 // --------------------------------------------------------
 #include <list>
 #include <set>
-#include <include/apcClassBase.h>
-#include <include/apxEnum.h>
-#include <include/apxTemplate.h>
+#include <include/apcClassBase.hpp>
+#include <include/apxTemplate.hpp>
 
 // --------------------------------------------------------
 //	名前空間を使用(Apocalypse::Collection)
@@ -158,7 +157,7 @@ namespace Apocalypse
 			///	<summary>
 			///		指定したシーケンスまでのすべてのシーケンスを削除する．
 			///	</summary>
-			void				Delete(const std::shared_ptr<Sequence::Sequencer> &Target);
+			void				Delete(const Sequence::Sequencer *Target);
 		private:
 			///	<summary>
 			///		コンストラクタ

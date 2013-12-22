@@ -4,7 +4,7 @@
 //	apcDrawing.h のメンバ関数の実体を置く
 // --------------------------------------------------------
 //#define APOCALYPSE_USEALLNAMESPACE
-#include "Apocalypse.h"
+#include "Apocalypse.hpp"
 
 // ----------------------------------------------------
 //	FrameBase
@@ -29,7 +29,7 @@
 	// 不透明に設定．
 	this->Alpha				= 255;
 	// コレクションに追加
-	__FrameCollection::GetInstance().Insert(this);
+	__FrameCollection::GetInstance().Insert(std::shared_ptr<__FrameBase>(this));
 }
 
 // ----------------------------------------------------
@@ -38,7 +38,7 @@
 				__FrameBase::~__FrameBase()
 {
 	// FrameCollectionから自身のデータを消す
-	__FrameCollection::GetInstance().Erase(this);
+	__FrameCollection::GetInstance().Erase(std::shared_ptr<__FrameBase>(this));
 }
 
 // ----------------------------------------------------
@@ -60,7 +60,7 @@ inline int		__FrameBase::GetHeight() const
 // ----------------------------------------------------
 //	FrameBase::GetFrameLocation
 // ----------------------------------------------------
-Point			__FrameBase::GetLocation() const
+inline Point	__FrameBase::GetLocation() const
 {
 	return this->_Location;
 }
@@ -71,7 +71,7 @@ Point			__FrameBase::GetLocation() const
 void			__FrameBase::_SetDefaultPosition()
 {
 	// もし親フレームが存在しないなら
-	if(!this->Parent.get()){
+	if(!this->Parent){
 		// 終了
 		return;
 	}
@@ -220,9 +220,9 @@ void			EdgeFrame::_SetProperties()
 void			GradationFrame::_DrawThisFrame() const
 {
 	// もしグラデーション開始色が設定されていて
-	if(this->StartGradColor.get()){
+	if(this->StartGradColor){
 		// 終了色が指定されていないor開始色と終了色が同じ場合なら
-		if(this->EndGradColor.get() == NULL
+		if(this->EndGradColor == NULL
 		|| this->StartGradColor->_GetColorToClass() == this->EndGradColor->_GetColorToClass()){
 			// 単色塗り
 			DrawBox(_Location.X, _Location.Y, (_Location.X + GetWidth()),
@@ -240,7 +240,7 @@ void			GradationFrame::_DrawThisFrame() const
 		}
 	}
 	// 境界線描画の色が決まっているならば
-	if(this->BorderColor.get()){
+	if(this->BorderColor){
 		// 描画する．
 		DrawBox(_Location.X, _Location.Y, (_Location.X + GetWidth()),
 				(_Location.Y + GetHeight()), BorderColor->_GetColorToClass(), FALSE);
@@ -402,7 +402,7 @@ void			MovieFrame::_DrawThisFrame() const
 	// 文字列をコピーする
 	this->Text	= Str;
 	// 色を初期化する
-	TextColor	= new Color(255,255,255);
+	TextColor	= std::shared_ptr<Color>(new Color(255,255,255));
 }
 
 // ----------------------------------------------------
@@ -414,9 +414,9 @@ void			StringFrame::_SetProperties()
 	int HeightSave = 0;
 	// ----------------------------------------------------
 	// もしフォントが未作成なら
-	if(!this->TextFont.get()){
+	if(!this->TextFont){
 		// フォントを新規作成
-		this->TextFont = new Font();
+		this->TextFont = std::shared_ptr<Font>(new Font());
 	}
 	// 横幅を取得する
 	this->_Width  = GetDrawStringWidthToHandle(Text,

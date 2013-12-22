@@ -3,7 +3,7 @@
 // --------------------------------------------------------
 //	apcCollection.h のメンバ関数の実体を置く
 // --------------------------------------------------------
-#include "Apocalypse.h"
+#include "Apocalypse.hpp"
 
 // ----------------------------------------------------
 //	FrameCollection
@@ -30,7 +30,7 @@
 void			__FrameCollection::Insert(const std::shared_ptr<__FrameBase> &Target)
 {
 	// もしNULLフレームが渡されたら
-	if(!Target.get()){
+	if(!Target){
 		// 何もしない
 		return;
 	}
@@ -67,10 +67,9 @@ std::shared_ptr<__FrameBase>
 		return Enum(false);
 	}
 	// もし親フレームが指定されていなければ
-	if(!Result.get() && !Result->Parent.get()
-	 && Result.GetPointer() != _TopParent.GetPointer()){
+	if(Result && !Result->Parent && Result != _TopParent){
 		// 親フレームをTopParentに指定する
-		Result->Parent = _TopParent.GetPointer();
+		Result->Parent = _TopParent;
 	}
 	// 返却する
 	return Result;
@@ -85,14 +84,14 @@ void			__FrameCollection::Erase(const std::shared_ptr<__FrameBase> &Target)
 	auto Count = _Container.begin();
 	// ------------------------------------------------
 	// もし引数に無効ポインタまたは最上位フレームを渡されたら
-	if(!Target.get() || Target == _TopParent){
+	if(!Target || Target == _TopParent){
 		// 何もしない
 		return;
 	}
 	// 終わりまでループする（引数のフレームを親に持つフレームを探す）
 	while(Count != _Container.end()){
 		// もし親フレームが引数のフレームと同じなら
-		if(Count->GetPointer()->Parent == Target){
+		if(Count->get()->Parent == Target){
 			// 親フレームを書き換える
 			(*Count)->Parent = (*Count)->Parent->Parent;
 		}
@@ -134,7 +133,7 @@ void			__FrameCollection::DrawAll() const
 	// バイリニア法で描画
 	SetDrawMode(DX_DRAWMODE_BILINEAR);
 	// もし無効なら
-	if(fTemp.get() == NULL){
+	if(!fTemp){
 		// 終了
 		return;
 	}
@@ -156,7 +155,7 @@ void			__FrameCollection::DrawAll() const
 		fTemp->_DrawThisFrame();
 	}
 	// NULLが返されるまで取得を続ける
-	while((fTemp = Enum(false)).get());
+	while((fTemp = Enum(false)));
 }
 
 // ----------------------------------------------------
@@ -165,7 +164,7 @@ void			__FrameCollection::DrawAll() const
 double			__FrameCollection::_GetParentAlphaParcent(const std::shared_ptr<__FrameBase> &Target) const
 {
 	// 割合を返却
-	return ((double)Target->Alpha / 255.0)*(Target->Parent.get() ? _GetParentAlphaParcent(Target->Parent) : 1.00);
+	return ((double)Target->Alpha / 255.0)*(Target->Parent ? _GetParentAlphaParcent(Target->Parent) : 1.00);
 }
 
 // ----------------------------------------------------
@@ -174,7 +173,7 @@ double			__FrameCollection::_GetParentAlphaParcent(const std::shared_ptr<__Frame
 unsigned int	__FrameCollection::_GetParentZindex(const std::shared_ptr<__FrameBase> &Target) const
 {
 	// 自身の親フレームのZ座標+自身のZ座標を返却
-	return (Target->DrawOrder + (Target->Parent.get() ? _GetParentZindex(Target->Parent) : 1));
+	return (Target->DrawOrder + (Target->Parent ? _GetParentZindex(Target->Parent) : 1));
 }
 
 // ----------------------------------------------------
@@ -183,7 +182,7 @@ unsigned int	__FrameCollection::_GetParentZindex(const std::shared_ptr<__FrameBa
 bool			__FrameCollection::_EnableParent(const std::shared_ptr<__FrameBase> &Target) const
 {
 	// 引数が無効なら
-	if(!Target.get()){
+	if(!Target){
 		// TRUEを返す
 		return true;
 	}
@@ -199,7 +198,7 @@ bool			__FrameCollection::_EnableParent(const std::shared_ptr<__FrameBase> &Targ
 void			__SequenceCollection::Add(const std::shared_ptr<Sequencer> &Target)
 {
 	// もしNULLなら
-	if(Target.get() == NULL){
+	if(!Target){
 		// 何もしない
 		return;
 	}
@@ -216,7 +215,7 @@ std::shared_ptr<Sequencer>
 	// もしスタックが空なら
 	if(_Container.empty()){
 		// NULLを返す
-		return std::shared_ptr<Sequencer>::Empty();
+		return NULL;
 	}
 	// スタックの一番上を返す
 	return _Container.back();
@@ -225,13 +224,13 @@ std::shared_ptr<Sequencer>
 // ----------------------------------------------------
 //	SequenceCollection::Delete
 // ----------------------------------------------------
-void			__SequenceCollection::Delete(const std::shared_ptr<Sequencer> &Target)
+void			__SequenceCollection::Delete(const Sequencer *Target)
 {
 	// 一時保存する
-	std::shared_ptr<Sequencer> TopSeq = Top();
+	auto TopSeq = Top();
 	// ----------------------------------------------------
 	// もしNULLなら
-	if(!Target.get() || !TopSeq.get()){
+	if(!Target || !TopSeq){
 		// 何もしない
 		return;
 	}
@@ -240,7 +239,7 @@ void			__SequenceCollection::Delete(const std::shared_ptr<Sequencer> &Target)
 		// 末尾要素を削除する
 		_Container.pop_back();
 	// 引数のシーケンスになるまで続ける
-	}while((TopSeq != Target) && (TopSeq = Top()).get());
+	}while((TopSeq.get() != Target) && (TopSeq = Top()));
 }
 
 // ----------------------------------------------------
