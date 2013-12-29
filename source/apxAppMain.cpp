@@ -19,11 +19,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	ApcSys.ApcStart();
 	// もしシーケンス取得関数を実行し，結果がNULLなら
 	if((StartSeq = ApcSys.GameSetting->Sequence()) == NULL){
+		// ゲームを終了させる．
+		ApcSys.ApcEnd();
 		// 終了
 		return 0;
 	}
 	// コレクションに追加する
-	__SequenceCollection::GetInstance().Add(StartSeq);
+	__SequenceCollection::GetInstance().Add(std::shared_ptr<Sequencer>(StartSeq));
 	// ループを発生させる
 	while(ApcSys.ApcProcess()){
 		// イベント処理を行う

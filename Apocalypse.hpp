@@ -1,20 +1,32 @@
 // ----------------------------------------------------
 //	Apocalypse.hpp
-//							Copyright (C) 2013 Arika.
+//						Copyright (C) 2013-2014 Arika.
 // ----------------------------------------------------
 //	Apocalypseの全機能を使用するのにincludeするヘッダーです．
 //	使用時の手間を減らすために，
 //	　・全ファイルをinclude
 //	　・全名前空間を標準でusing
+//	　・いくつかのdefineマクロを定義
 //	　・libを自動で読み込む
-//	の3つを行っています．
+//	の4つを行っています．
 //	気になる人は自分で個別にincludeしてください．
 // ----------------------------------------------------
 //	read once
 #pragma once
 
 // ----------------------------------------------------
+//	読み込み時の設定
+// ----------------------------------------------------
+//	設定を有効にするには，先頭のコメントアウトを外して下さい．
+//	#define NOTUSING_DEFINEMACRO	// マクロを使用しません
+//	#define NOTUSING_NAMESPACE		// 名前空間をusingしません
+//	#define NOTLOADING_LIB			// .libを読み込みません
+
+// ----------------------------------------------------
 //	Include(定義関連)
+// ----------------------------------------------------
+//	マクロ定義
+#include "include/apxMacro.hpp"
 // ----------------------------------------------------
 //	基底クラス(名前空間: Apocalypse::Base)
 #include "include/apcClassBase.hpp"
@@ -88,7 +100,6 @@
 	using namespace Apocalypse::Event;
 	using namespace Apocalypse::Collection;
 	using namespace Apocalypse::Input;
-	using namespace Apocalypse::Enum;
 	//using namespace Apocalypse::Expression;
 	//using namespace Apocalypse::Sound;
 	//using namespace Apocalypse::UI;

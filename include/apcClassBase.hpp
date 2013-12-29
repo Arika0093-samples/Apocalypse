@@ -12,6 +12,7 @@
 #include <Windows.h>
 #include <tchar.h>
 #include <sstream>
+#include <boost/typeof/typeof.hpp>
 
 // --------------------------------------------------------
 //	名前空間を使用
@@ -20,7 +21,7 @@ namespace Apocalypse
 {
 	namespace Base
 	{
-		// ------------------------------------------------
+		// -----------------------------------------------
 		//	Front Declaration
 		// ------------------------------------------------
 		class String;
@@ -192,13 +193,13 @@ namespace Apocalypse
 		/// <example>
 		///		使用例: 
 		///		<code>
-		///		// Stringクラスに数字の4.12を流してMessageBoxで出力
+		///		// String()クラスに数字の4.12を流してMessageBoxで出力
 		///		String str;
 		///		str << 4.12;
 		///		MessageBox(NULL, str, _T(""), ID_OK);
-		///		// Stringクラスが先頭に来ない場面または引数上で<<を使用する場合はStrOut定数を使用する．
-		///		str = StrOut << _T("1+1=: ") << (1+1);
-		///		MessageBox(NULL, (StrOut << _T("Value: ") << 6.132), _T(""), ID_OK);
+		///		// Stringクラスが先頭に来ない場面または引数上で<<を使用する場合はString()を使用する．
+		///		str = String() << _T("1+1=: ") << (1+1);
+		///		MessageBox(NULL, (String() << _T("Value: ") << 6.132), _T(""), ID_OK);
 		///		</code>
 		/// </example>
 		class String : public virtual __ApcBase, public std::basic_string<TCHAR>
@@ -209,6 +210,10 @@ namespace Apocalypse
 			///		コンストラクタ．
 			///	</summary>
 								String(LPCTSTR Text = _T(""));
+			///	<summary>
+			///		文字列をMessageBoxで表示する
+			///	</summary>
+			void				Message() const;
 			///	<summary>
 			///		文字列を指定した型に変換する．
 			///	</summary>

@@ -358,6 +358,15 @@ String&			String::operator<<(const String& Val)
 }
 
 // ----------------------------------------------------
+//	String::Message
+// ----------------------------------------------------
+void			String::Message() const
+{
+	// 表示
+	MessageBox(GetMainWindowHandle(), c_str(), _T(""), MB_OK | MB_ICONINFORMATION);
+}
+
+// ----------------------------------------------------
 //	String::FromValue
 // ----------------------------------------------------
 template<typename Type>

@@ -50,7 +50,7 @@
 	// Localeを現在の標準言語で指定する
 	_tsetlocale(LC_ALL, _T(""));
 	// 保存領域を新規作成する
-	this->GameSetting.New();
+	GameSetting = New( __ApcSetting);
 	// カレントディレクトリを指定する
 	_SetProgramDirectory();
 };
