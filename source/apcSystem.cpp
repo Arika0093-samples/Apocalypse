@@ -6,11 +6,66 @@
 #include "Apocalypse.hpp"
 
 // ----------------------------------------------------
-//	GameSetting
+//	ApplicationConfig
 // ----------------------------------------------------
-//	GameSetting::GameSetting (Constructor)
+//	(Global Constructor)
 // ----------------------------------------------------
-				__ApcSetting::__ApcSetting()
+UINT			ApplicationConfig::Width			= 640;
+UINT			ApplicationConfig::Height			= 480;
+String			ApplicationConfig::Title			= _T("Apocalypse");
+String			ApplicationConfig::ClassName		= _T("APOCALYPSE_APPLICATION");
+String			ApplicationConfig::DefaultFontName	= ApplicationConfig::_GetDefaultFontName();
+UINT			ApplicationConfig::Refresh			= 0;
+SeqFunc			ApplicationConfig::Sequence			= NULL;
+ExitFunc		ApplicationConfig::ExitFunction		= NULL;
+bool			ApplicationConfig::ActiveAll		= false;
+bool			ApplicationConfig::DualBoot			= false;
+bool			ApplicationConfig::GDIDraw			= true;
+bool			ApplicationConfig::ASyncLoad		= false;
+bool			ApplicationConfig::WindowMode		= true;
+bool			ApplicationConfig::AeroDisable		= false;
+// DEBUGの定義によってDebugModeの値を変える．
+#ifdef _DEBUG
+bool			ApplicationConfig::DebugMode		= true;
+#else
+bool			ApplicationConfig::DebugMode		= false;
+#endif
+
+// ----------------------------------------------------
+//	GameSetting::Accept
+// ----------------------------------------------------
+void			ApplicationConfig::Accept()
+{
+	// ログ作成するかどうか．
+	SetOutApplicationLogValidFlag(DebugMode);
+	// 非同期読み込みするかどうか．
+	SetUseASyncLoadFlag(ASyncLoad);
+	// ウィンドウのタイトル変更．
+	SetMainWindowText(Title);
+	// ウィンドウのクラス名変更．
+	SetMainWindowClassName(ClassName);
+	// アイコン変更．
+	SetWindowIconID(1);
+	// GDI描画のフラグを指定する
+	SetUseGDIFlag(GDIDraw);
+	// 二重起動のフラグを指定する．
+	SetDoubleStartValidFlag(DualBoot);
+	// 常に動作させるかどうかのフラグを指定する．
+	SetAlwaysRunFlag(ActiveAll);
+	// 終了時関数を実行するかどうか
+	SetWindowUserCloseEnableFlag(ExitFunction.empty());
+	// ウィンドウモードを変更．
+	ChangeWindowMode(WindowMode);
+	// ウィンドウサイズの変更．
+	SetWindowSize(Width, Height);
+	// 描画ウインドウサイズの変更．
+	SetGraphMode(Width, Height, 32, Refresh);
+}
+
+// ----------------------------------------------------
+//	GameSetting::_GetDefaultFontName
+// ----------------------------------------------------
+String			ApplicationConfig::_GetDefaultFontName()
 {
 	// フォント名取得に使用する
 	LOGFONT lgFont;
@@ -19,27 +74,10 @@
 	memset(&lgFont, NULL, sizeof(LOGFONT));
 	// システムのフォントを取得する
 	SystemParametersInfo(SPI_GETICONTITLELOGFONT, sizeof(LOGFONT), &lgFont, 0);
-	// 各種ステータスの初期化
-	Width			= 640;
-	Height			= 480;
-	Title			= _T("Apocalypse");
-	ClassName		= _T("APOCALYPSE_APPLICATION");
-	DefaultFontName	= lgFont.lfFaceName;
-	Refresh			= 0;
-	ActiveAll		= false;
-	DualBoot		= false;
-	GDIDraw			= true;
-	ASyncLoad		= false;
-	WindowMode		= true;
-	AeroDisable		= false;
-	// DEBUGの定義によってDebugModeの値を変える．
-	#ifdef _DEBUG
-		DebugMode	= true;
-	#else
-		DebugMode	= false;
-	#endif
-}
-
+	// 返却
+	return lgFont.lfFaceName;
+}	
+	
 // ----------------------------------------------------
 //	ApcSystem
 // ----------------------------------------------------
@@ -49,27 +87,9 @@
 {
 	// Localeを現在の標準言語で指定する
 	_tsetlocale(LC_ALL, _T(""));
-	// 保存領域を新規作成する
-	GameSetting = New( __ApcSetting);
 	// カレントディレクトリを指定する
 	_SetProgramDirectory();
 };
-
-// ----------------------------------------------------
-//	ApcSystem::GetWindowWidth
-// ----------------------------------------------------
-UINT			__ApcSystem::GetWindowWidth()
-{
-	return (GetInstance().GameSetting->Width);
-}
-
-// ----------------------------------------------------
-//	ApcSystem::GetWindowHeight
-// ----------------------------------------------------
-UINT			__ApcSystem::GetWindowHeight()
-{
-	return (GetInstance().GameSetting->Height);
-}
 
 // ----------------------------------------------------
 //	ApcSystem::SetProgramDirectory
@@ -120,15 +140,15 @@ bool			__ApcSystem::ApcProcess() const
 		return false;
 	}
 	// 終了時関数が登録されていて，終了コマンドが送られてきたなら
-	if(!GameSetting->ExitFunction.empty() && GetWindowUserCloseFlag(TRUE) == TRUE){
+	if(!ApplicationConfig::ExitFunction.empty() && GetWindowUserCloseFlag(TRUE) == TRUE){
 		// 関数を実行した戻り値がTRUEなら
-		if((int)GameSetting->ExitFunction() == TRUE){
+		if(ApplicationConfig::ExitFunction()){
 			// 終了．
 			return false;
 		}
 	}
 	// ×ボタンが押されていたら
-	if(ProcessMessage() == 0){
+	if(ProcessMessage() == -1){
 		// 終了．
 		return false;
 	}
@@ -156,28 +176,8 @@ void			__ApcSystem::ApcEnd() const
 // ----------------------------------------------------
 void			__ApcSystem::_InitGameProcess() const
 {
-	// ログ作成するかどうか．
-	SetOutApplicationLogValidFlag(GameSetting->DebugMode);
-	// 非同期読み込みするかどうか．
-	SetUseASyncLoadFlag(GameSetting->ASyncLoad);
-	// ウィンドウのタイトル変更．
-	SetMainWindowText(GameSetting->Title);
-	// ウィンドウのクラス名変更．
-	SetMainWindowClassName(GameSetting->ClassName);
-	// アイコン変更．
-	SetWindowIconID(1);
-	// GDI描画のフラグを指定する
-	SetUseGDIFlag(GameSetting->GDIDraw);
-	// 二重起動のフラグを指定する．
-	SetDoubleStartValidFlag(GameSetting->DualBoot);
-	// 常に動作させるかどうかのフラグを指定する．
-	SetAlwaysRunFlag(GameSetting->ActiveAll);
-	// ウィンドウモードを変更．
-	ChangeWindowMode(GameSetting->WindowMode);
-	// ウィンドウサイズの変更．
-	SetWindowSize(GameSetting->Width, GameSetting->Height);
-	// 描画ウインドウサイズの変更．
-	SetGraphMode(GameSetting->Width, GameSetting->Height, 32, GameSetting->Refresh);
+	// 設定を適用する
+	ApplicationConfig::Accept();
 };
 
 // ----------------------------------------------------

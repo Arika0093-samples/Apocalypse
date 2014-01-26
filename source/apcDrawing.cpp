@@ -3,7 +3,6 @@
 // --------------------------------------------------------
 //	apcDrawing.h のメンバ関数の実体を置く
 // --------------------------------------------------------
-//#define APOCALYPSE_USEALLNAMESPACE
 #include "Apocalypse.hpp"
 
 // ----------------------------------------------------
@@ -24,12 +23,12 @@
 	// 描画位置を初期化
 	this->Position			= FramePosition::Default;
 	this->Interpret			= FramePosition::Default;
-	// 親フレームを標準値に初期化
-	this->Parent			= NULL;
-	// 不透明に設定．
-	this->Alpha				= 255;
+	// 描画種類を初期化
+	this->DrawMode			= FrameDrawMode::Nearest;
+	// 親フレームをTopParentに初期化
+	this->Parent			= __FrameCollection::GetInstance().GetTopParent();
 	// コレクションに追加
-	__FrameCollection::GetInstance().Insert(std::shared_ptr<__FrameBase>(this));
+	__FrameCollection::GetInstance().Insert(this);
 }
 
 // ----------------------------------------------------
@@ -38,7 +37,7 @@
 				__FrameBase::~__FrameBase()
 {
 	// FrameCollectionから自身のデータを消す
-	__FrameCollection::GetInstance().Erase(std::shared_ptr<__FrameBase>(this));
+	__FrameCollection::GetInstance().Erase(this);
 }
 
 // ----------------------------------------------------
@@ -60,9 +59,20 @@ inline int		__FrameBase::GetHeight() const
 // ----------------------------------------------------
 //	FrameBase::GetFrameLocation
 // ----------------------------------------------------
-inline Point	__FrameBase::GetLocation() const
+Point			__FrameBase::GetLocation() const
 {
 	return this->_Location;
+}
+
+// ----------------------------------------------------
+//	FrameBase::ToString
+// ----------------------------------------------------
+String			__FrameBase::ToString() const
+{
+	return String()
+		<< _T("Location: {") << _Location.ToString() << _T("}, ")
+		<< _T("Width: ") << _Width
+		<< _T(", Height: ") << _Height;
 }
 
 // ----------------------------------------------------
@@ -70,8 +80,10 @@ inline Point	__FrameBase::GetLocation() const
 // ----------------------------------------------------
 void			__FrameBase::_SetDefaultPosition()
 {
+	// 親フレームを取得
+	auto PrtPtr = Parent;
 	// もし親フレームが存在しないなら
-	if(!this->Parent){
+	if(!PrtPtr){
 		// 終了
 		return;
 	}
@@ -84,23 +96,23 @@ void			__FrameBase::_SetDefaultPosition()
 		case FramePosition::MiddleLeft:
 		case FramePosition::BottomLeft:
 			// 親のX座標をそのまま追加．
-			this->_Location.X += ((this->Parent->_Location.X) + (this->Points.X));
+			this->_Location.X += ((PrtPtr->_Location.X) + (this->Points.X));
 			break;
 		// (X座標)中心を基準に表示するなら
 		case FramePosition::TopCenter:
 		case FramePosition::MiddleCenter:
 		case FramePosition::BottomCenter:
 			// 親のX座標 + (親の幅/2)を追加．
-			this->_Location.X += ((this->Parent->_Location.X) + (this->Points.X)
-							  + ((this->Parent->_Width) / 2));
+			this->_Location.X += ((PrtPtr->_Location.X) + (this->Points.X)
+							  + ((PrtPtr->_Width) / 2));
 			break;
 		// (X座標)一番右を基準に表示するなら
 		case FramePosition::TopRight:
 		case FramePosition::MiddleRight:
 		case FramePosition::BottomRight:
 			// 親のX座標 + 親の幅を追加．
-			this->_Location.X += ((this->Parent->_Location.X) + (this->Points.X)
-							  +  (this->Parent->_Width));
+			this->_Location.X += ((PrtPtr->_Location.X) + (this->Points.X)
+							  +  (PrtPtr->_Width));
 			break;
 	}
 	// 基準とする位置で判定(Y座標)．
@@ -110,23 +122,23 @@ void			__FrameBase::_SetDefaultPosition()
 		case FramePosition::TopCenter:
 		case FramePosition::TopRight:
 			// 親のY座標をそのまま追加．
-			this->_Location.Y += ((this->Parent->_Location.Y) + (this->Points.Y));
+			this->_Location.Y += ((PrtPtr->_Location.Y) + (this->Points.Y));
 			break;
 		// (Y座標)中心を基準に表示するなら
 		case FramePosition::MiddleLeft:
 		case FramePosition::MiddleCenter:
 		case FramePosition::MiddleRight:
 			// 親のY座標 + (親の高さ/2)を追加．
-			this->_Location.Y += ((this->Parent->_Location.Y) + (this->Points.Y)
-							  + ((this->Parent->_Height) / 2));
+			this->_Location.Y += ((PrtPtr->_Location.Y) + (this->Points.Y)
+							  + ((PrtPtr->_Height) / 2));
 			break;
 		// (Y座標)一番下を基準に表示するなら
 		case FramePosition::BottomLeft:
 		case FramePosition::BottomCenter:
 		case FramePosition::BottomRight:
 			// 親のY座標 + 親の高さを追加．
-			this->_Location.Y += ((this->Parent->_Location.Y) + (this->Points.Y)
-							  +  (this->Parent->_Height));
+			this->_Location.Y += ((PrtPtr->_Location.Y) + (this->Points.Y)
+							  +  (PrtPtr->_Height));
 			break;
 	}
 	// 解釈位置を確認(X座標)
@@ -204,9 +216,17 @@ void			EdgeFrame::_SetProperties()
 	}
 	// もし%指定なら
 	else {
+		// 親フレームを取得
+		auto PrtPtr = Parent;
+		// もし無効なら
+		if(!PrtPtr){
+			// 例外を投げてもいい気がする
+			// throw XXXX;
+			return;
+		}
 		// 横幅と縦幅を指定する
-		_Width  = (Parent->GetWidth ())* (Width)/100;
-		_Height = (Parent->GetHeight())*(Height)/100;
+		_Width  = (PrtPtr->GetWidth ())* (Width)/100;
+		_Height = (PrtPtr->GetHeight())*(Height)/100;
 	}
 	// 終了．
 	return;
@@ -215,6 +235,17 @@ void			EdgeFrame::_SetProperties()
 // ----------------------------------------------------
 //	GradationFrame
 // ----------------------------------------------------
+//	GradationFrame::ToString
+// ----------------------------------------------------
+String			GradationFrame::ToString() const
+{
+	return this->__FrameBase::ToString()
+		<< _T(", Start: {")	<< (StartGradColor	? StartGradColor->ToString(): _T("empty")) << _T("}")
+		<< _T(", End: {")	<< (EndGradColor	? EndGradColor->ToString()	: _T("empty")) << _T("}")
+		<< _T(", Border: {")<< (BorderColor		? BorderColor->ToString()	: _T("empty")) << _T("}");
+}
+
+// ----------------------------------------------------
 //	GradationFrame::DrawThisFrame
 // ----------------------------------------------------
 void			GradationFrame::_DrawThisFrame() const
@@ -222,28 +253,34 @@ void			GradationFrame::_DrawThisFrame() const
 	// もしグラデーション開始色が設定されていて
 	if(this->StartGradColor){
 		// 終了色が指定されていないor開始色と終了色が同じ場合なら
-		if(this->EndGradColor == NULL
-		|| this->StartGradColor->_GetColorToClass() == this->EndGradColor->_GetColorToClass()){
+		if(EndGradColor == NULL || StartGradColor->_Compare(EndGradColor)){
+			// αブレンド適用
+			StartGradColor->_AppendAlpha();
 			// 単色塗り
 			DrawBox(_Location.X, _Location.Y, (_Location.X + GetWidth()),
-					(_Location.Y + GetHeight()), StartGradColor->_GetColorToClass(), TRUE);
+					(_Location.Y + GetHeight()), StartGradColor->_GetColor(), TRUE);
 		}
 		// 終了色が指定されている場合は
 		else {
 			// グラデーションを描画する
 			for(int Y = 0; Y < this->GetHeight(); Y++){
-				// 一本ずつ描画する．
-				DrawLine(_Location.Y, _Location.Y + Y,
-						 _Location.X + GetWidth() - 1, _Location.Y + Y,
-						 StartGradColor->_GetColorBlends(EndGradColor, (Y*100/GetHeight())));
+				// 描画する色を取得する
+				auto DrawColor = StartGradColor->_GetColorBlends(EndGradColor, (Y*100/GetHeight()));
+				// αブレンド適用
+				DrawColor->_AppendAlpha();
+				// 一本ずつ描画する
+				DrawLine(_Location.X, _Location.Y + Y, _Location.X + GetWidth() - 1,
+						 _Location.Y + Y, DrawColor->_GetColor());
 			}
 		}
 	}
 	// 境界線描画の色が決まっているならば
 	if(this->BorderColor){
+		// αブレンド適用
+		BorderColor->_AppendAlpha();
 		// 描画する．
 		DrawBox(_Location.X, _Location.Y, (_Location.X + GetWidth()),
-				(_Location.Y + GetHeight()), BorderColor->_GetColorToClass(), FALSE);
+				(_Location.Y + GetHeight()), BorderColor->_GetColor(), FALSE);
 	}
 }
 
@@ -257,9 +294,12 @@ void			GradationFrame::_DrawThisFrame() const
 	// ハンドルをセットする
 	this->_PictureHandle	= LoadGraph(ImgPath);
 	// 画像パスをセットする
+	this->Path				= ImgPath;
 	this->_PicturePath		= ImgPath;
 	// 画像サイズを横幅と縦幅に指定する
 	GetGraphSize(_PictureHandle, &_Width, &_Height);
+	// 不透明度を255に指定する
+	Alpha = 255;
 }
 
 // ----------------------------------------------------
@@ -272,51 +312,50 @@ void			GradationFrame::_DrawThisFrame() const
 }
 
 // ----------------------------------------------------
+//	PictureFrame::ToString
+// ----------------------------------------------------
+String			PictureFrame::ToString() const
+{
+	return this->__FrameBase::ToString()
+		<< _T(", Path: \"") << Path << _T("\"")
+		<< _T(", Alpha: ")<< Alpha;
+}
+
+// ----------------------------------------------------
 //	PictureFrame::SetProperties
 // ----------------------------------------------------
 void			PictureFrame::_SetProperties()
 {
+	// もし指定されている画像ファイルが変わっているなら
+	if(Path != _PicturePath){
+		// 現在の画像を破棄して
+		DeleteGraph(_PictureHandle);
+		// 読み込み直す
+		_PictureHandle = LoadGraph(Path);
+		// コピー
+		_PicturePath = Path;
+	}
 	// 画像サイズを横幅と縦幅に指定する
 	GetGraphSize(_PictureHandle, &_Width, &_Height);
 }
 
 // ----------------------------------------------------
-//	PictureFrame::DrawThisFrame
+//	PictureFrame::DrsawThisFrame
 // ----------------------------------------------------
 void			PictureFrame::_DrawThisFrame() const
 {
+	// αブレンドを有効化
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, Alpha);
 	// 画像を描画する
 	DrawGraph(_Location.X, _Location.Y, _PictureHandle, TRUE);
 }
 
 // ----------------------------------------------------
-//	PictureFrame::ExchangePicture
+//	AreaPictureFrame
 // ----------------------------------------------------
-bool			PictureFrame::ExchangePicture(String ImgPath, int Handle)
-{
-	// もし画像が同じものだったら
-	if(_PicturePath == ImgPath){
-		// falseを返す．
-		return false;
-	}
-	// 現在のハンドルを削除する
-	DeleteGraph(_PictureHandle);
-	// ハンドルをセットする
-	this->_PictureHandle	= ( Handle ? Handle : LoadGraph(ImgPath) );
-	// 画像パスをセットする
-	this->_PicturePath		= ImgPath;
-	// 画像サイズを横幅と縦幅に指定する
-	GetGraphSize(_PictureHandle, &_Width, &_Height);
-	// trueを返す
-	return true;
-}
-
+//	AreaPictureFrame::AreaPictureFrame (Constructor)
 // ----------------------------------------------------
-//	TilePictureFrame
-// ----------------------------------------------------
-//	TilePictureFrame::TilePictureFrame (Constructor)
-// ----------------------------------------------------
-				TilePictureFrame::TilePictureFrame(String ImgPath)
+				AreaPictureFrame::AreaPictureFrame(String ImgPath)
 					: PictureFrame(ImgPath)
 {
 	// 初期化する
@@ -326,18 +365,26 @@ bool			PictureFrame::ExchangePicture(String ImgPath, int Handle)
 }
 
 // ----------------------------------------------------
-//	PictureFrame::SetProperties
+//	AreaPictureFrame::ToString
 // ----------------------------------------------------
-void			TilePictureFrame::_SetProperties()
+String			AreaPictureFrame::ToString() const
+{
+	return this->PictureFrame::ToString();
+}
+
+// ----------------------------------------------------
+//	AreaPictureFrame::SetProperties
+// ----------------------------------------------------
+void			AreaPictureFrame::_SetProperties()
 {
 	// EdgeFrameの方を呼び出す
 	this->EdgeFrame::_SetProperties();
 }
 
 // ----------------------------------------------------
-//	PictureFrame::DrawThisFrame
+//	AreaPictureFrame::DrawThisFrame
 // ----------------------------------------------------
-void			TilePictureFrame::_DrawThisFrame() const
+void			AreaPictureFrame::_DrawThisFrame() const
 {
 	// 描画画像の縦横幅
 	int PictWidth, PictHeight;
@@ -346,6 +393,8 @@ void			TilePictureFrame::_DrawThisFrame() const
 	SetDrawArea(_Location.X, _Location.Y, (_Location.X + _Width), (_Location.Y + _Height));
 	// 描画画像の縦横幅を取得する
 	GetGraphSize(_PictureHandle, &PictWidth, &PictHeight);
+	// αブレンドを有効化
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, Alpha);
 	// もし引き伸ばして描画するなら
 	if(StretchDraw){
 		// 拡大描画
@@ -377,6 +426,14 @@ void			TilePictureFrame::_DrawThisFrame() const
 }
 
 // ----------------------------------------------------
+//	MovieFrame::ToString
+// ----------------------------------------------------
+String			MovieFrame::ToString() const
+{
+	return this->__FrameBase::ToString();
+}
+
+// ----------------------------------------------------
 //	MovieFrame::SetProperties
 // ----------------------------------------------------
 void			MovieFrame::_SetProperties()
@@ -389,6 +446,8 @@ void			MovieFrame::_SetProperties()
 // ----------------------------------------------------
 void			MovieFrame::_DrawThisFrame() const
 {
+	// αブレンドを有効化
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, Alpha);
 
 }
 
@@ -401,8 +460,23 @@ void			MovieFrame::_DrawThisFrame() const
 {
 	// 文字列をコピーする
 	this->Text	= Str;
+	// 標準で文字送りしない
+	AdvanceTimer.Add = 0;
 	// 色を初期化する
 	TextColor	= std::shared_ptr<Color>(new Color(255,255,255));
+}
+
+// ----------------------------------------------------
+//	StringFrame::ToString
+// ----------------------------------------------------
+String			StringFrame::ToString() const
+{
+	return this->__FrameBase::ToString()
+		<< _T(", Text: \"") << Text << _T("\"")
+		<< (AdvanceTimer.Add != 0 ? String() << _T(", ShowTextLenght: ")
+		<< (int)AdvanceTimer._GetValueNoReload() / 100 : _T(""))
+		<< _T(", Font: {") << TextFont->ToString() << _T("}")
+		<< _T(", Color: {") << TextColor->ToString() << _T("}");
 }
 
 // ----------------------------------------------------
@@ -425,6 +499,8 @@ void			StringFrame::_SetProperties()
 	GetFontStateToHandle(NULL, &HeightSave, NULL, TextFont->_GetFontHandle());
 	// 設定
 	_Height = HeightSave;
+	// 描画文字を更新
+	_SetDrawString();
 }
 
 // ----------------------------------------------------
@@ -432,9 +508,20 @@ void			StringFrame::_SetProperties()
 // ----------------------------------------------------
 void			StringFrame::_DrawThisFrame() const
 {
+	// αブレンドを有効化
+	TextColor->_AppendAlpha();
 	// 文字列を描画する．
-	DrawStringToHandle(_Location.X, _Location.Y, this->Text,
-			this->TextColor->_GetColorToClass(), this->TextFont->_GetFontHandle());
+	DrawStringToHandle(_Location.X, _Location.Y, _DrawText,
+			this->TextColor->_GetColor(), this->TextFont->_GetFontHandle());
+}
+
+// ----------------------------------------------------
+//	StringFrame::GetDrawString
+// ----------------------------------------------------
+void			StringFrame::_SetDrawString()
+{
+	// Timer考慮で文字を先頭から順に取得する
+	_DrawText = Text.substr(0, (AdvanceTimer.Add != 0 ? AdvanceTimer() / 100 : Text.length()));
 }
 
 // ----------------------------------------------------
@@ -445,7 +532,7 @@ void			StringFrame::_DrawThisFrame() const
 				Font::Font()
 {
 	// 標準フォントを使用する
-	_Name	= __ApcSystem::GetInstance().GameSetting->DefaultFontName;
+	_Name	= ApplicationConfig::DefaultFontName;
 	// プロパティをセットする
 	_Size	= 16;
 	_Thick	= 0;
@@ -460,7 +547,7 @@ void			StringFrame::_DrawThisFrame() const
 				Font::Font(int FontSize)
 {
 	// 標準フォントを使用する
-	_Name	= __ApcSystem::GetInstance().GameSetting->DefaultFontName;
+	_Name	= ApplicationConfig::DefaultFontName;
 	// プロパティをセットする
 	_Size	= FontSize;
 	_Thick	= 0;
@@ -524,6 +611,16 @@ void			StringFrame::_DrawThisFrame() const
 }
 
 // ----------------------------------------------------
+//	StringFrame::ToString
+// ----------------------------------------------------
+String			Font::ToString() const
+{
+	return String() << _T("Name: \"") << _Name << _T("\"")
+		<< _T(", Size: ") << _Size
+		<< _T(", Thick: ") << _Thick;
+}
+
+// ----------------------------------------------------
 //	Font::GetFontHandle
 // ----------------------------------------------------
 inline int		Font::_GetFontHandle() const
@@ -536,42 +633,101 @@ inline int		Font::_GetFontHandle() const
 // ----------------------------------------------------
 //	Color::Color
 // ----------------------------------------------------
-				Color::Color(int R, int G, int B)
+				Color::Color(int Rp, int Gp, int Bp)
 {
 	// 値を指定する
-	this->_Red		= R;
-	this->_Green	= G;
-	this->_Blue		= B;
+	this->R	= Rp;
+	this->G	= Gp;
+	this->B	= Bp;
+	this->A	= 255;
+}
+
+// ----------------------------------------------------
+//	Color::Color
+// ----------------------------------------------------
+				Color::Color(int Ap, int Rp, int Gp, int Bp)
+{
+	// 値を指定する
+	this->R	= Rp;
+	this->G	= Gp;
+	this->B	= Bp;
+	this->A	= Ap;
 }
 
 // ----------------------------------------------------
 //	Color::Color (RGB Code version)
 // ----------------------------------------------------
-				Color::Color(Color::ColorList RGBCode)
+				Color::Color(Color::_ColorList ARGBCode)
 {
 	// 値をシフト演算で指定する
-	this->_Red		= ((RGBCode >> 16) & 0xFF);
-	this->_Green	= ((RGBCode >>  8) & 0xFF);
-	this->_Blue		= ((RGBCode >>  0) & 0xFF);
+	this->A	= ((ARGBCode >> 24) & 0xFF);
+	this->R	= ((ARGBCode >> 16) & 0xFF);
+	this->G	= ((ARGBCode >>  8) & 0xFF);
+	this->B	= ((ARGBCode >>  0) & 0xFF);
 }
 
 // ----------------------------------------------------
-//	Color::ColorToClass
+//	Color::Color (RGB Code version, Set Alpha)
 // ----------------------------------------------------
-inline DWORD	Color::_GetColorToClass() const
+				Color::Color(Color::_ColorList RGBCode, int Alpha)
 {
-	return GetColor(this->_Red, this->_Green, this->_Blue);
+	// 値をシフト演算で指定する
+	this->R	= ((RGBCode >> 16) & 0xFF);
+	this->G	= ((RGBCode >>  8) & 0xFF);
+	this->B	= ((RGBCode >>  0) & 0xFF);
+	// 引数の値を指定する
+	this->A	= Alpha;
 }
 
 // ----------------------------------------------------
-//	Color::ColorToClass
+//	Color::ToString
 // ----------------------------------------------------
-DWORD			Color::_GetColorBlends(const std::shared_ptr<Color> Target, int Parcent) const
+String			Color::ToString() const
+{
+	return String() << _T("Alpha: ") << A
+		<< _T(", Red: ") << R
+		<< _T(", Blue: ") << B
+		<< _T(", Green: ") << G;
+}
+
+// ----------------------------------------------------
+//	Color::GetColor
+// ----------------------------------------------------
+inline DWORD	Color::_GetColor() const
+{
+	return GetColor(this->R, this->G, this->B);
+}
+
+// ----------------------------------------------------
+//	Color::AppendAlpha
+// ----------------------------------------------------
+inline void		Color::_AppendAlpha() const
+{
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, A);
+}
+
+// ----------------------------------------------------
+//	Color::Compare
+// ----------------------------------------------------
+bool			Color::_Compare(const std::shared_ptr<Color> Target) const
+{
+	return Target->A == A
+		&& Target->R == R
+		&& Target->B == B
+		&& Target->G == G;
+}
+
+// ----------------------------------------------------
+//	Color::GetColorBlends
+// ----------------------------------------------------
+std::shared_ptr<Color>
+				Color::_GetColorBlends(const std::shared_ptr<Color> Target, int Parcent) const
 {
 	// 色ごとに取得する
-	int Red		= ((Target->_Red)*(Parcent)/(100))	+ ((this->_Red)*(100-(Parcent))/(100));
-	int Green	= ((Target->_Green)*(Parcent)/(100))+ ((this->_Green)*(100-(Parcent))/(100));
-	int Blue	= ((Target->_Blue)*(Parcent)/(100))	+ ((this->_Blue)*(100-(Parcent))/(100));
+	int _Red	= (Target->R * Parcent)/100 + (R * (100-Parcent))/100;
+	int _Green	= (Target->G * Parcent)/100 + (G * (100-Parcent))/100;
+	int _Blue	= (Target->B * Parcent)/100 + (B * (100-Parcent))/100;
+	int _Alpha	= (Target->A * Parcent)/100 + (A * (100-Parcent))/100;
 	// 作成して返却する
-	return DxLib::GetColor(Red, Green, Blue);
+	return New(Color, _Alpha, _Red, _Green, _Blue);
 }

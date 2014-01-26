@@ -26,7 +26,7 @@ namespace Apocalypse
 		///		<para>Singletonクラスを実装する際に使用するクラスのテンプレート．</para>
 		///		<para>継承する形で使用する．</para>
 		///	</summary>
-		class __Singleton : public virtual Base::__ApcBase
+		class __Singleton : public virtual Base::__ApcInside
 		{
 		public:
 			/// <summary>

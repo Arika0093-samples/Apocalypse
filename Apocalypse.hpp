@@ -31,6 +31,9 @@
 //	基底クラス(名前空間: Apocalypse::Base)
 #include "include/apcClassBase.hpp"
 // ----------------------------------------------------
+//	基本値管理クラス(名前空間: Apocalypse::Value)
+#include "include/apcValue.hpp"
+// ----------------------------------------------------
 //	テンプレートクラス(名前空間: Apocalypse::Template)
 #include "include/apxTemplate.hpp"
 // ----------------------------------------------------
@@ -74,15 +77,15 @@
 #ifndef NOTLOADING_LIB
 	#ifndef _WIN64
 		#ifndef _DEBUG
-			#pragma comment(lib, "lib/Apocalypse.lib")
+			#pragma comment(lib, "../lib/Apocalypse.lib")
 		#else
-			#pragma comment(lib, "lib/Apocalypse_d.lib")
+			#pragma comment(lib, "../lib/Apocalypse_d.lib")
 		#endif
 	#else
 		#ifndef _DEBUG
-			#pragma comment(lib, "lib/Apocalypse_x64.lib")
+			#pragma comment(lib, "../lib/Apocalypse_x64.lib")
 		#else
-			#pragma comment(lib, "lib/Apocalypse_x64_d.lib")
+			#pragma comment(lib, "../lib/Apocalypse_x64_d.lib")
 		#endif
 	#endif
 #endif
@@ -94,6 +97,7 @@
 #ifndef NOTUSING_NAMESPACE
 	using namespace Apocalypse;
 	using namespace Apocalypse::Base;
+	using namespace Apocalypse::Value;
 	using namespace Apocalypse::System;
 	using namespace Apocalypse::Sequence;
 	using namespace Apocalypse::Draw;

@@ -9,8 +9,10 @@
 // --------------------------------------------------------
 //	必要なヘッダーを読み込む
 // --------------------------------------------------------
+#include <vector>
 #include <list>
 #include <set>
+#include <boost/foreach.hpp>
 #include <include/apcClassBase.hpp>
 #include <include/apxTemplate.hpp>
 
@@ -44,7 +46,7 @@ namespace Apocalypse
 		///		<para>このクラスによってフレームは自動収集・描画されます．</para>
 		///		<para>このクラスはsingletonです．</para>
 		/// </remarks>
-		class __FrameCollection : virtual public Template::__Singleton<__FrameCollection>
+		class __FrameCollection :  public Template::__Singleton<__FrameCollection>
 		{
 			/// <summary>
 			///		Singletonクラスは全てのメンバにアクセス可能です．
@@ -52,30 +54,53 @@ namespace Apocalypse
 			friend class		Template::__Singleton<__FrameCollection>;
 		public:
 			///	<summary>
+			///		デストラクタ
+			///	</summary>
+			virtual				~__FrameCollection();
+			/// <summary>
+			///		__FrameBaseのshared_ptrをtypedefで省略
+			/// </summary>
+			typedef				Draw::__FrameBase*		FramePtr;
+			/// <summary>
+			///		__FrameBaseのshared_ptrを管理するvectorをtypedefで省略
+			/// </summary>
+			typedef				std::vector<FramePtr>*	FrameListPtr;
+			/// <summary>
+			///		const __FrameCollection::FramePtr&を引数にとりboolを返却するfunctionをtypedefで省略
+			/// </summary>
+			typedef				boost::function<bool(const FramePtr&)>	CheckFunc;
+			///	<summary>
 			///		指定したフレームを追加する．
 			///	</summary>
-			/// <param name = "ResetFlag">
+			/// <param name = "Target">
 			///		追加する対象のフレーム．
 			/// </param>
-			void				Insert(const std::shared_ptr<Draw::__FrameBase> &Target);
+			void				Insert(Draw::__FrameBase *Target);
 			///	<summary>
-			///		現在一覧に登録されているフレームを列挙する．
+			///		現在一覧に登録されているフレームをvectorコンテナで返却する．
 			///	</summary>
-			/// <param name = "ResetFlag">
-			///		true
-			///		<para>最初から列挙を開始する．</para>
-			///		false
-			///		<para>前回の途中から列挙を続ける．</para>
+			FrameListPtr		Enum() const;
+			///	<summary>
+			///		現在一覧に登録されているフレームのうち，条件式と一致する項目をvectorコンテナで返却する．
+			///	</summary>
+			/// <param name = "Func">
+			///		const __FrameCollection::FramePtrを引数にとりboolを返す関数．true返却で一致と判断する．
 			/// </param>
-			std::shared_ptr<Draw::__FrameBase>	
-								Enum(bool ResetFlag) const;
+			FrameListPtr		Enum(CheckFunc Func) const;
 			///	<summary>
 			///		指定したフレームを除外する．
 			///	</summary>
 			/// <param name = "Target">
 			///		除外する対象のフレーム．NULLを指定した場合すべて削除される．
 			/// </param>
-			void				Erase(const std::shared_ptr<Draw::__FrameBase> &Target);
+			void				Erase(const Draw::__FrameBase *Target);
+			///	<summary>
+			///		指定した条件と一致するフレームのうち始めの一つを取得する．
+			///	</summary>
+			/// <param name = "Func">
+			///		const __FrameCollection::FramePtrを引数にとりboolを返す関数．true返却で一致と判断する．
+			/// </param>
+			FramePtr			Find(CheckFunc Func) const;
 			///	<summary>
 			///		コンテナ内のフレームを全て削除する．
 			///	</summary>
@@ -84,6 +109,10 @@ namespace Apocalypse
 			///		すべてのフレームを描画する．
 			///	</summary>
 			void				DrawAll() const;
+			///	<summary>
+			///		最上位フレームを取得する
+			///	</summary>
+			Draw::EdgeFrame*	GetTopParent() const;
 		private:
 			///	<summary>
 			///		コンストラクタ
@@ -95,39 +124,30 @@ namespace Apocalypse
 			class				_Sort
 			{
 			public:
-				bool			operator()(const std::shared_ptr<Draw::__FrameBase> &A, const std::shared_ptr<Draw::__FrameBase> &B);
+				bool			operator()(const Draw::__FrameBase *A, const Draw::__FrameBase *B);
 			};
-			/// <summary>
-			///		親フレームのα値の割合を取得する．
-			///		親フレームのαがすべて255の場合に1.0が返る．
-			/// </summary>
-			/// <param name = "Target">
-			///		α値割合を調べる対象のフレーム．
-			/// </param>
-			double				_GetParentAlphaParcent(const std::shared_ptr<Draw::__FrameBase> &Target) const;
 			/// <summary>
 			///		親フレームのZ座標の合計値を取得する関数．
 			/// </summary>
 			/// <param name = "Target">
 			///		Z座標を調べる対象のフレーム．
 			/// </param>
-			unsigned int		_GetParentZindex(const std::shared_ptr<Draw::__FrameBase> &Target) const;
+			unsigned int		_GetParentZindex(const Draw::__FrameBase *Target) const;
 			///	<summary>
 			///		親フレームに無効フレームがあるかどうかを調べる．
 			///	</summary>
 			/// <param name = "Target">
 			///		Enableを調べる対象のフレーム．
 			/// </param>
-			bool				_EnableParent(const std::shared_ptr<Draw::__FrameBase> &Target) const;
+			bool				_EnableParent(const Draw::__FrameBase *Target) const;
 			///	<summary>
 			///		最上位のフレーム．
 			///	</summary>
-			std::shared_ptr<Draw::EdgeFrame>
-								_TopParent;
+			Draw::EdgeFrame*	_TopParent;
 			///	<summary>
 			///		フレームを管理するためのコンテナ
 			///	</summary>
-			std::multiset<std::shared_ptr<Draw::__FrameBase>, __FrameCollection::_Sort>
+			std::multiset<Draw::__FrameBase*, __FrameCollection::_Sort>
 								_Container;
 		};
 
@@ -138,13 +158,17 @@ namespace Apocalypse
 		///		<para>このクラスによってシーケンスは管理されます．</para>
 		///		<para>このクラスはsingletonです．</para>
 		/// </remarks>
-		class __SequenceCollection : virtual public Template::__Singleton<__SequenceCollection>
+		class __SequenceCollection : public Template::__Singleton<__SequenceCollection>
 		{
 			/// <summary>
 			///		Singletonクラスは全てのメンバにアクセス可能です．
 			/// </summary>
 			friend class		Template::__Singleton<__SequenceCollection>;
 		public:
+			///	<summary>
+			///		デストラクタ
+			///	</summary>
+			virtual				~__SequenceCollection();
 			///	<summary>
 			///		指定したシーケンスを末尾に追加する．
 			///	</summary>
@@ -183,7 +207,7 @@ namespace Apocalypse
 		///		int Counter = FrameCounter::GetCount();
 		///		</code>
 		/// </example>
-		class __FrameCounter : virtual public Template::__Singleton<__FrameCounter>
+		class __FrameCounter : public Template::__Singleton<__FrameCounter>
 		{
 			/// <summary>
 			///		Singletonクラスは全てのメンバにアクセス可能です．
@@ -193,7 +217,7 @@ namespace Apocalypse
 			/// <summary>
 			///		カウント数を取得する関数．
 			/// </summary>
-			static UINT			GetCount();
+			static double		GetCount();
 			/// <summary>
 			///		カウント数を増加させる関数．1フレームに一度だけ呼ぶ．
 			/// </summary>
@@ -206,8 +230,7 @@ namespace Apocalypse
 			/// <summary>
 			///		カウント数を保存しておく変数．
 			/// </summary>
-			unsigned int		_Value;
+			double				_Value;
 		};
 	}
 }
-

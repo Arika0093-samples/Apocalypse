@@ -12,22 +12,28 @@
 // ----------------------------------------------------
 				__FrameCollection::__FrameCollection()
 {
-	// Get System Instance
-	__ApcSystem gs = __ApcSystem::GetInstance();
-	// ----------------------------------------------------
 	// 最上位フレームを作成する
-	_TopParent = std::shared_ptr<EdgeFrame>(new EdgeFrame());
+	_TopParent = new EdgeFrame();
 	// 横幅と縦幅を指定する
-	_TopParent->Width	= gs.GetWindowWidth();
-	_TopParent->Height	= gs.GetWindowHeight();
+	_TopParent->Width	= ApplicationConfig::Width;
+	_TopParent->Height	= ApplicationConfig::Height;
 	// ％指定を無効にする．
 	_TopParent->SpecifyWithParcent = false;
 }
 
 // ----------------------------------------------------
+//	FrameCollection::~FrameCollection (Destructor)
+// ----------------------------------------------------
+				__FrameCollection::~__FrameCollection()
+{
+	// 全削除
+	_Container.clear();
+}
+
+// ----------------------------------------------------
 //	FrameCollection::Insert
 // ----------------------------------------------------
-void			__FrameCollection::Insert(const std::shared_ptr<__FrameBase> &Target)
+void			__FrameCollection::Insert(__FrameBase *Target)
 {
 	// もしNULLフレームが渡されたら
 	if(!Target){
@@ -41,67 +47,96 @@ void			__FrameCollection::Insert(const std::shared_ptr<__FrameBase> &Target)
 // ----------------------------------------------------
 //	FrameCollection::Enum
 // ----------------------------------------------------
-std::shared_ptr<__FrameBase>	
-				__FrameCollection::Enum(bool ResetFlag) const
+__FrameCollection::FrameListPtr	
+				__FrameCollection::Enum() const
 {
-	// 現在のカウント数を保存する
-	static std::multiset<std::shared_ptr<__FrameBase>>::iterator Count;
-	// 取得したフレームを保存する
-	std::shared_ptr<__FrameBase> Result = NULL;
+	// 引数あり版を呼び出す
+	return Enum([](const FramePtr){ return true; });
+}
+
+// ----------------------------------------------------
+//	FrameCollection::Enum
+// ----------------------------------------------------
+__FrameCollection::FrameListPtr	
+				__FrameCollection::Enum(__FrameCollection::CheckFunc Func) const
+{
+	// 返却する一覧を用意
+	auto FVector = new std::vector<FramePtr>();
+	// イテレータを取得
+	auto Iter = _Container.begin();
 	// ------------------------------------------------
-	// もし初期化フラグが指定されていれば
-	if(ResetFlag){
-		// カウントを初期化する
-		Count = _Container.begin();
+	// 終端まで全て確認
+	while(Iter != _Container.end()){
+		// 取得
+		auto Ptr = *Iter;
+		// 1つ進める
+		Iter++;
+		// もし関数の結果がfalseなら
+		if(!Func(Ptr)){
+			// 再度呼び出す
+			continue;
+		}
+		// もし親フレームが指定されていなければ
+		if(Ptr->Parent && Ptr != _TopParent){
+			// 親フレームをTopParentに指定する
+			Ptr->Parent = _TopParent;
+		}
+		// vectorに追加
+		FVector->push_back(Ptr);
 	}
-	// もし次があるなら
-	if(Count != _Container.end()){
-		// 取得する
-		Result = *Count;
-		// 次に進める
-		++Count;
-	}
-	// もし親にEnableがfalseのフレームがあるなら
-	if(Result && !_EnableParent(Result)){
-		// 再度呼び出す
-		return Enum(false);
-	}
-	// もし親フレームが指定されていなければ
-	if(Result && !Result->Parent && Result != _TopParent){
-		// 親フレームをTopParentに指定する
-		Result->Parent = _TopParent;
-	}
-	// 返却する
-	return Result;
+	// 返却
+	return FVector;
 }
 
 // ----------------------------------------------------
 //	FrameCollection::Erase
 // ----------------------------------------------------
-void			__FrameCollection::Erase(const std::shared_ptr<__FrameBase> &Target)
+void			__FrameCollection::Erase(const __FrameBase *Target)
 {
-	// イテレータを確保して先頭にする
-	auto Count = _Container.begin();
-	// ------------------------------------------------
 	// もし引数に無効ポインタまたは最上位フレームを渡されたら
 	if(!Target || Target == _TopParent){
 		// 何もしない
 		return;
 	}
-	// 終わりまでループする（引数のフレームを親に持つフレームを探す）
-	while(Count != _Container.end()){
-		// もし親フレームが引数のフレームと同じなら
-		if(Count->get()->Parent == Target){
-			// 親フレームを書き換える
-			(*Count)->Parent = (*Count)->Parent->Parent;
-		}
-		// イテレータを進める
-		Count++;
+	// 引数のフレームを親に持つフレームを取得する
+	auto List = Enum([Target](const FramePtr Pr){return(Pr->Parent == Target);});
+	// 順番に見る
+	BOOST_FOREACH(auto Ptr, *List){
+		// 親フレームを取得
+		auto ParentPtr = Ptr->Parent;
+		// 親フレームを書き換える
+		Ptr->Parent = ParentPtr->Parent;
 	}
-	// 指定されたフレームを削除する
-	_Container.erase(Target);
+	// 取得する
+	auto ErasePtr = Find([Target](const FramePtr Pr){return Pr == Target;});
+	// もし削除する対象が存在するなら
+	if(ErasePtr){
+		// 順番に見る
+		auto Iter = _Container.begin();
+		for(; Iter != _Container.end(); Iter++){
+			if((*Iter) == Target){
+				break;
+			}
+		}
+		// 指定されたフレームをコンテナから削除する
+		_Container.erase(Iter);
+	}
 	// 終了
 	return;
+}
+
+// ----------------------------------------------------
+//	FrameCollection::Find
+// ----------------------------------------------------
+__FrameCollection::FramePtr
+				__FrameCollection::Find(__FrameCollection::CheckFunc Func) const
+{
+	// 取得
+	auto Vector = *Enum(Func);
+	// もし取得した結果がemptyならNULLを返却
+	if(Vector.empty()){ return NULL; }
+	// 最初の項目を返却
+	return Vector[0];
 }
 
 // ----------------------------------------------------
@@ -116,7 +151,7 @@ void			__FrameCollection::Clear()
 // ----------------------------------------------------
 //	FrameCollection::Sort
 // ----------------------------------------------------
-bool			__FrameCollection::_Sort::operator()(const std::shared_ptr<__FrameBase> &A, const std::shared_ptr<__FrameBase> &B)
+bool			__FrameCollection::_Sort::operator()(const __FrameBase *A, const __FrameBase *B)
 {
 	// Z座標を比較する．この際Z座標が0なら標準値を使用する
 	return	(A->DrawOrder != 0 ? A->DrawOrder : __FrameCollection::GetInstance()._GetParentZindex(A))
@@ -128,70 +163,68 @@ bool			__FrameCollection::_Sort::operator()(const std::shared_ptr<__FrameBase> &
 // ----------------------------------------------------
 void			__FrameCollection::DrawAll() const
 {
-	// 最初に一つ取得する
-	auto fTemp = Enum(true);
-	// バイリニア法で描画
-	SetDrawMode(DX_DRAWMODE_BILINEAR);
-	// もし無効なら
-	if(!fTemp){
-		// 終了
-		return;
-	}
-	// ループを起こす
-	do{
-		// αブレンドを有効化
-		SetDrawBlendMode(DX_BLENDMODE_ALPHA,
-			(int)( fTemp->Alpha * _GetParentAlphaParcent(fTemp) ));
+	// 一覧を取得する(Visibleがtrueかつ親にEnable=falseが存在しない)
+	auto List = Enum([this](const FramePtr &Val){ return (Val->Visible && _EnableParent(Val)); });
+	// 列挙する
+	BOOST_FOREACH(auto Ptr, *List){
 		// 横幅・縦幅の標準値を取得
-		fTemp->_SetProperties();
+		Ptr->_SetProperties();
 		// 位置をリセットする
-		fTemp->_SetDefaultPosition();
-		// もし非表示設定ならば
-		if(fTemp->Visible == false){
-			// 描画せずに繰り返す．
-			continue;
-		}
+		Ptr->_SetDefaultPosition();
+		// 描画モードを指定する
+		SetDrawMode(Ptr->DrawMode);
 		// 取得したフレームの描画関数を実行する
-		fTemp->_DrawThisFrame();
+		Ptr->_DrawThisFrame();
 	}
-	// NULLが返されるまで取得を続ける
-	while((fTemp = Enum(false)));
 }
 
 // ----------------------------------------------------
-//	FrameBase::GetParentAlphaParcent
+//	FrameCollection::GetTopParent
 // ----------------------------------------------------
-double			__FrameCollection::_GetParentAlphaParcent(const std::shared_ptr<__FrameBase> &Target) const
+EdgeFrame*		__FrameCollection::GetTopParent() const
 {
-	// 割合を返却
-	return ((double)Target->Alpha / 255.0)*(Target->Parent ? _GetParentAlphaParcent(Target->Parent) : 1.00);
+	return _TopParent;
 }
 
 // ----------------------------------------------------
 //	FrameBase::GetParentZindex
 // ----------------------------------------------------
-unsigned int	__FrameCollection::_GetParentZindex(const std::shared_ptr<__FrameBase> &Target) const
+unsigned int	__FrameCollection::_GetParentZindex(const __FrameBase *Tgt) const
 {
+	// もし無効なら
+	if(!Tgt){
+		// 1を返す
+		return 1.00;
+	}
 	// 自身の親フレームのZ座標+自身のZ座標を返却
-	return (Target->DrawOrder + (Target->Parent ? _GetParentZindex(Target->Parent) : 1));
+	return (Tgt->DrawOrder + _GetParentZindex(Tgt->Parent));
 }
 
 // ----------------------------------------------------
 //	FrameCollection::EnableParent
 // ----------------------------------------------------
-bool			__FrameCollection::_EnableParent(const std::shared_ptr<__FrameBase> &Target) const
+bool			__FrameCollection::_EnableParent(const __FrameBase *Tgt) const
 {
-	// 引数が無効なら
-	if(!Target){
-		// TRUEを返す
-		return true;
+	// もし無効なら
+	if(!Tgt || !Tgt->Enable){
+		// 親がないならtrue，自身が無効ならfalseを返す
+		return !Tgt;
 	}
-	// 引数.EnableがTRUEなら
-	return (Target->Enable ? _EnableParent(Target->Parent) : false);
+	// 親でも同じ関数を実行
+	return _EnableParent(Tgt->Parent);
 }
 
 // ----------------------------------------------------
 //	SequenceCollection
+// ----------------------------------------------------
+//	SequenceCollection::~SequenceCollection (Destructor)
+// ----------------------------------------------------
+				__SequenceCollection::~__SequenceCollection()
+{
+	// 全削除
+	_Container.clear();
+}
+
 // ----------------------------------------------------
 //	SequenceCollection::Add
 // ----------------------------------------------------
@@ -226,20 +259,23 @@ std::shared_ptr<Sequencer>
 // ----------------------------------------------------
 void			__SequenceCollection::Delete(const Sequencer *Target)
 {
-	// 一時保存する
-	auto TopSeq = Top();
-	// ----------------------------------------------------
+	// 保存用
+	std::shared_ptr<Sequencer> TopFrame;
 	// もしNULLなら
-	if(!Target || !TopSeq){
+	if(!Target || !Top()){
 		// 何もしない
 		return;
 	}
-	// ループ
-	do{
+	// 引数のシーケンスになるまで続ける
+	while( TopFrame = Top() ){
 		// 末尾要素を削除する
 		_Container.pop_back();
-	// 引数のシーケンスになるまで続ける
-	}while((TopSeq.get() != Target) && (TopSeq = Top()));
+		// もし一致したならば
+		if(TopFrame.get() == Target){
+			// 終わる
+			break;
+		}
+	};
 }
 
 // ----------------------------------------------------
@@ -258,7 +294,7 @@ void			__SequenceCollection::Delete(const Sequencer *Target)
 // ----------------------------------------------------
 //	FrameCounter::GetCount
 // ----------------------------------------------------
-UINT			__FrameCounter::GetCount()
+double			__FrameCounter::GetCount()
 {
 	// 返却する
 	return GetInstance()._Value;

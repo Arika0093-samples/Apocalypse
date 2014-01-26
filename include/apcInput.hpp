@@ -47,7 +47,7 @@ namespace Apocalypse
 		///		}
 		///		</code>
 		/// </example>
-		class KeyBoard : virtual public Template::__Singleton<KeyBoard>
+		class KeyBoard : public Template::__Singleton<KeyBoard>
 		{
 			/// <summary>
 			///		Singletonクラスは全てのメンバにアクセス可能です．
@@ -80,6 +80,11 @@ namespace Apocalypse
 			///		取得する対象のキー．KeyListで定義された値を使用して下さい．
 			/// </param>
 			static bool			OutStart(Keys TargetKey);
+			/// <summary>
+			///		キーの押されている状態を文字列で返却する．
+			/// </summary>
+			virtual Value::String
+								ToString() const;
 			/// <summary>
 			///		キーの状態を更新する．1フレームに1度呼び出す．
 			/// </summary>
@@ -114,7 +119,7 @@ namespace Apocalypse
 		///		}
 		///		</code>
 		/// </example>
-		class Mouse : virtual public Template::__Singleton<Mouse>
+		class Mouse : public Template::__Singleton<Mouse>
 		{
 			/// <summary>
 			///		Singletonクラスは全てのメンバにアクセス可能です．
@@ -154,7 +159,7 @@ namespace Apocalypse
 			/// <summary>
 			///		マウスの位置を取得する．
 			/// </summary>
-			static Base::Point	GetPosition();
+			static Value::Point	GetPosition();
 			/// <summary>
 			///		マウスの位置を設定する．
 			/// </summary>
@@ -165,6 +170,11 @@ namespace Apocalypse
 			///		指定するY座標．
 			/// </param>
 			static void			SetPosition(int X, int Y);
+			/// <summary>
+			///		クラスの情報を文字列で取得する．
+			/// </summary>
+			virtual Value::String
+								ToString() const;
 			/// <summary>
 			///		マウスの状態を更新する．1フレームに1度呼び出す．
 			/// </summary>
@@ -187,11 +197,11 @@ namespace Apocalypse
 			/// <summary>
 			///		マウスの位置を取得する
 			/// </summary>
-			Base::Point			_MouseLocation;
+			Value::Point		_MouseLocation;
 			/// <summary>
 			///		1フレーム前のマウスの位置を取得する
 			/// </summary>
-			Base::Point			_MouseBeforeLoc;
+			Value::Point		_MouseBeforeLoc;
 		};
 
 		///	<summary>

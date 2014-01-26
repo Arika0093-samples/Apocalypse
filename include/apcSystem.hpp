@@ -17,12 +17,6 @@
 #include <include/apxTemplate.hpp>
 
 // --------------------------------------------------------
-//	defineマクロを使用する
-// --------------------------------------------------------
-//	初期関数
-#define ApocalypseSetUp(Name)	__ApcSystem::ApcSetUp(__ApcSetting &Name)
-
-// --------------------------------------------------------
 //	名前空間を使用(Apocalypse::System)
 // --------------------------------------------------------
 namespace Apocalypse
@@ -32,112 +26,117 @@ namespace Apocalypse
 		// --------------------------------------------------------
 		//	Typedef
 		// --------------------------------------------------------
-		typedef boost::function<Sequence::Sequencer*()>	SeqFunc;
-		typedef	boost::function<bool()>					ExitFunc;
+		typedef boost::function<std::shared_ptr<Sequence::Sequencer>()>	SeqFunc;
+		typedef	boost::function<bool()>									ExitFunc;
 
 		/// <summary>
 		///		システムを動かすための各種初期設定項目をまとめたクラス．
 		/// </summary>
 		/// <remarks>
-		///		<para>このクラスはApcSystem::ApcSetUp()関数の引数として渡されます．</para>
-		///		<para>ApcSetUp内で値を変更することにより，設定が変更されます．</para>
+		///		<para>このクラスの値を変更して，Accept関数を実行することで適用されます．</para>
+		///		<para>ApcSetUp関数内で値を変更することで，自動で設定が適用されます．</para>
 		/// </remarks>
 		/// <example>
 		///		使用例:
 		///		<code>
-		///		void ApocalypseSetUp(As)
+		///		void ApocalypseSetUp()
 		///		{
 		///			// 初期シーケンス関数を指定する（必須）
-		///			As.Sequence	= [](){return new AnySequence();}
-		///			As.Width	= 800;			// 横幅を指定
-		///			As.Height	= 600;			// 縦幅を指定
-		///			As.Title	= "Apocalypse";	// ウインドウ名を指定
-		///			As.DualBoot = true;			// 二重起動できるようにする
-		///			…
+		///			ApplicationConfig::Sequence	= [](){return new AnySequence();}
+		///			ApplicationConfig::Width	= 800;			// 横幅を指定
+		///			ApplicationConfig::Height	= 600;			// 縦幅を指定
+		///			ApplicationConfig::Title	= "GameTest";	// ウインドウ名を指定
+		///			ApplicationConfig::DualBoot = true;			// 二重起動できるようにする
+		///			// etc...
+		///		}
 		///		</code>
 		/// </example>
-		class __ApcSetting : virtual public Base::__ApcInside
+		class ApplicationConfig : public Base::__ApcBase
 		{
 		public:
 			/// <summary>
 			///		作成されるウインドウの横幅．
 			/// </summary>
-			UINT				Width;
+			static UINT				Width;
 			/// <summary>
 			///		作成されるウインドウの縦幅．
 			/// </summary>
-			UINT				Height;
+			static UINT				Height;
 			/// <summary>
 			///		リフレッシュレートの値．初期値は60．
 			/// </summary>
-			UINT				Refresh;
+			static UINT				Refresh;
 			/// <summary>
 			///		作成されるウインドウのタイトル名．
 			/// </summary>
-			Base::String		Title;
+			static Value::String	Title;
 			/// <summary>
 			///		作成されるウインドウのタイトル名．
 			/// </summary>
-			Base::String		ClassName;
+			static Value::String	ClassName;
 			/// <summary>
 			///		標準のフォント名．
 			/// </summary>
-			Base::String		DefaultFontName;
+			static Value::String	DefaultFontName;
 			/// <summary>
 			///		<para>初期シーケンスを指定する関数を登録します．必ず指定する必要があります．</para>
-			///		<para>戻り値がSequence::Sequencer*の引数無し関数を指定します．</para>
-			///		<para>戻り値に指定したSequwncer*が初期シーケンスとなります．</para>
+			///		<para>戻り値がshared_ptr(Sequence::Sequencer)の引数無し関数を指定します．</para>
+			///		<para>戻り値に指定したSequencerが初期シーケンスとなります．</para>
 			/// </summary>
 			/// <example>
 			///		ラムダ式を使用して，Sequencerを継承したFirstSeqを
 			///		初期シーケンスに指定する例:
 			///		<code>
-			///		void ApocalypseSetUp(As)
+			///		void ApocalypseSetUp()
 			///		{
-			///			As.Sequence	= [](){return new FirstSeq();};
+			///			ApplicationConfig::Sequence	= [](){return new FirstSeq();};
 			///		}
 			///		</code>
 			/// </example>
-			SeqFunc				Sequence;
+			static SeqFunc			Sequence;
 			/// <summary>
 			///		<para>終了する前に呼び出される関数を登録できます．</para>
 			///		<para>関数は戻り値がboolの引数無し関数です．戻り値がtrueの場合終了します．</para>
 			///		<para>初期状態では何も呼び出されません．</para>
 			/// </summary>
-			ExitFunc			ExitFunction;
+			static ExitFunc			ExitFunction;
 			/// <summary>
 			///		非アクティブ時でも常に動作するかどうか．初期値はfalse．
 			/// </summary>
-			bool				ActiveAll;
+			static bool				ActiveAll;
 			/// <summary>
 			///		Windows Vista以降のAeroを無効化するかどうか．標準ではfalse．
 			/// </summary>
-			bool				AeroDisable;
+			static bool				AeroDisable;
 			/// <summary>
 			///		非同期読み込みを行うかどうか．初期値はfalse．
 			/// </summary>
-			bool				ASyncLoad;
+			static bool				ASyncLoad;
 			/// <summary>
 			///		デバッグモードで起動するかどうか．
 			///		初期値はDEBUGコンパイルならtrue, それ以外ならfalse．
 			/// </summary>
-			bool				DebugMode;
+			static bool				DebugMode;
 			/// <summary>
 			///		二重起動が可能かどうか．初期値はfalse．
 			/// </summary>
-			bool				DualBoot;
+			static bool				DualBoot;
 			/// <summary>
 			///		GDI描画を行うかどうか．初期値はfalse．
 			/// </summary>
-			bool				GDIDraw;
+			static bool				GDIDraw;
 			/// <summary>
 			///		ウインドウモードで開始するかどうか．初期値はtrue．
 			/// </summary>
-			bool				WindowMode;
+			static bool				WindowMode;
 			/// <summary>
-			///		コンストラクタ
+			///		環境設定を適用する関数
 			/// </summary>
-								__ApcSetting();
+			static void				Accept();
+			/// <summary>
+			///		標準のフォント名を取得
+			/// </summary>
+			static Value::String	_GetDefaultFontName();
 		};
 
 		/// <summary>
@@ -147,7 +146,7 @@ namespace Apocalypse
 		///		<para>このクラス内では，ゲームの起動と終了関連の処理を行います．</para>
 		///		<para>ApcSetup関数は独自に実装する必要があります．</para>
 		/// </remarks>
-		class __ApcSystem : virtual public Template::__Singleton<__ApcSystem>
+		class __ApcSystem : public Template::__Singleton<__ApcSystem>
 		{
 			/// <summary>
 			///		Singletonクラスは全てのメンバにアクセス可能です．
@@ -155,33 +154,21 @@ namespace Apocalypse
 			friend class		Template::__Singleton<__ApcSystem>;
 		public:
 			/// <summary>
-			///		ウインドウの横幅を取得する．
-			/// </summary>
-			static UINT			GetWindowWidth();
-			/// <summary>
-			///		ウインドウの横幅を取得する．
-			/// </summary>
-			static UINT			GetWindowHeight();
-			/// <summary>
 			///		Apocalypse起動前のセットアップを行う関数です．
 			/// </summary>
 			/// <remarks>
 			///		この関数はユーザーが独自に定義する必要があります．
 			/// </remarks>
-			/// <paramref name="as">
-			///		<para>ゲームの各種設定項目を格納したクラスの参照．</para>
-			///		<para>この値を変更することで設定を変更する事ができます．</para>
-			///	</paramref>
 			/// <example>
 			///		使用例:
 			///		<code>
-			///		void ApocalypseSetUp(As)
+			///		void ApocalypseSetUp()
 			///		{
-			///			// 初期設定を行う．詳細は__ApcSettingを参照してください．
+			///			// 初期設定を行う．詳細はApplicationConfig::を参照してください．
 			///		}
 			///		</code>
 			/// </example>
-			void				ApcSetUp(__ApcSetting &As);
+			void				ApcSetUp() const;
 			/// <summary>
 			///		起動する
 			/// </summary>
@@ -194,11 +181,6 @@ namespace Apocalypse
 			///		ゲームを終了する．
 			/// </summary>
 			void				ApcEnd() const;
-			/// <summary>
-			///		設定を保存するための項目．
-			/// </summary>
-			std::shared_ptr<__ApcSetting>
-								GameSetting;
 		private:
 			/// <summary>
 			///		コンストラクタ

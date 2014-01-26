@@ -29,13 +29,13 @@ namespace Apocalypse
 		class Font;
 
 		///	<summary>
-		///		フレームの位置を示す定数を収納した列挙型．
+		///		フレームの位置を示す定数を定義した列挙型．
 		///	</summary>
 		///	<remark>
 		///		C++の性質上enumを外に置くとサジェストが汚染されるので
 		///		クラスの内部に隠蔽しています．
 		///	</remark>
-		class FramePosition : virtual public Base::__ApcEnumeration
+		class FramePosition : public Base::__ApcEnumeration
 		{
 		public:
 			///	<summary>
@@ -87,6 +87,40 @@ namespace Apocalypse
 		};
 
 		///	<summary>
+		///		描画の種類を示す定数を定義した列挙型．
+		///	</summary>
+		///	<remark>
+		///		C++の性質上enumを外に置くとサジェストが汚染されるので
+		///		クラスの内部に隠蔽しています．
+		///	</remark>
+		class FrameDrawMode : public Base::__ApcEnumeration
+		{
+		public:
+			///	<summary>
+			///		描画の種類を示す定数を定義した列挙型．
+			///	</summary>
+			enum				_FrameDrawMode
+			{
+				///	<summary>
+				///		ネアレストネイバー法で描画
+				///	</summary>
+				Nearest		= DX_DRAWMODE_NEAREST,
+				///	<summary>
+				///		バイリニア法で描画する
+				///	</summary>
+				Bilinear	= DX_DRAWMODE_BILINEAR,
+				///	<summary>
+				///		異方性フィルタリング法で描画する
+				///	</summary>
+				Anisotropic	= DX_DRAWMODE_ANISOTROPIC,
+				///	<summary>
+				///		それ以外
+				///	</summary>
+				Other		= DX_DRAWMODE_OTHER,
+			};
+		};
+
+		///	<summary>
 		///		すべてのフレームの基盤．
 		///	</summary>
 		/// <remarks>
@@ -94,7 +128,7 @@ namespace Apocalypse
 		///		<para>関して描画・管理されます．そのフレームクラスの基盤がこのクラスです．</para>
 		///		<para>このクラス自体は生成できません．</para>
 		/// </remarks>
-		class __FrameBase : virtual public Base::__ApcBase
+		class __FrameBase : public Base::__ApcBase
 		{
 			/// <summary>
 			///		FrameCollectionクラスからは全てのメンバにアクセス可能です．
@@ -103,7 +137,8 @@ namespace Apocalypse
 			/// <summary>
 			///		typedef
 			/// </summary>
-			typedef				FramePosition::_FramePosition FPosition;
+			typedef				FramePosition::_FramePosition	FPosition;
+			typedef				FrameDrawMode::_FrameDrawMode	FDrawMode;
 		public:
 			/// <summary>
 			///		デストラクタ
@@ -128,21 +163,12 @@ namespace Apocalypse
 			/// <summary>
 			///		このフレームの基準位置からの座標．
 			/// </summary>
-			Base::Point			Points;
+			Value::Point		Points;
 			/// <summary>
 			///		<para>このフレームの描画順番．高いほど手前に描画される．</para>
 			///		<para>0に指定すると親フレームのZ座標から自動で指定される．</para>
 			/// </summary>
 			unsigned int		DrawOrder;
-			/// <summary>
-			///		このフレームのαブレンド．255で不透明．0で透明．
-			/// </summary>
-			int					Alpha;
-			/// <summary>
-			///		このフレームの親フレーム．
-			/// </summary>
-			std::shared_ptr<__FrameBase>
-								Parent;
 			/// <summary>
 			///		設置位置を決定する定数．
 			/// </summary>
@@ -160,6 +186,17 @@ namespace Apocalypse
 			/// </remarks>
 			FPosition			Interpret;
 			/// <summary>
+			///		描画方法の種類．
+			/// </summary>
+			/// <remarks>
+			///		<see cref="FrameDrawMode">FrameDrawMode</see>で定義された定数を使用して下さい．
+			/// </remarks>
+			FDrawMode			DrawMode;
+			/// <summary>
+			///		このフレームの親フレーム．
+			/// </summary>
+			__FrameBase*		Parent;
+			/// <summary>
 			///		フレームの横幅を取得する
 			/// </summary>
 			int					GetWidth() const;
@@ -170,7 +207,12 @@ namespace Apocalypse
 			/// <summary>
 			///		フレームの左上の座標を取得する
 			/// </summary>
-			Base::Point			GetLocation() const;
+			Value::Point		GetLocation() const;
+			/// <summary>
+			///		フレームの状態を文字列で返却する．
+			/// </summary>
+			virtual Value::String
+								ToString() const;
 		private:
 			/// <summary>
 			///		自身の標準のX, Y座標を指定する関数．
@@ -188,7 +230,7 @@ namespace Apocalypse
 			/// <summary>
 			///		このフレームを描画する左上の場所
 			/// </summary>
-			Base::Point			_Location;
+			Value::Point		_Location;
 			/// <summary>
 			///		このフレームの横幅．
 			/// </summary>
@@ -286,37 +328,39 @@ namespace Apocalypse
 			/// <remarks>
 			///		NULLが指定されている場合枠線を描画しません．標準ではNULLです．
 			/// </remarks>
-			std::shared_ptr<Color>
-								BorderColor;
+			std::shared_ptr<Color>	BorderColor;
 			///	<summary>
-			///		グラディエーション開始色を指定する．
+			///		グラデーション開始色を指定する．
 			///	</summary>
 			/// <remarks>
 			///		NULLが指定されている場合グラデーションを描画しません．
 			/// </remarks>
-			std::shared_ptr<Color>
-								StartGradColor;
+			std::shared_ptr<Color>	StartGradColor;
 			///	<summary>
-			///		グラディエーション終了色を指定する．
+			///		グラデーション終了色を指定する．
 			///	</summary>
 			/// <remarks>
 			///		NULLが指定されている場合StartGradColorの色で塗りつぶします．
 			/// </remarks>
-			std::shared_ptr<Color>
-								EndGradColor;
+			std::shared_ptr<Color>	EndGradColor;
 			///	<summary>
 			///		コンストラクタ
 			///	</summary>
-								GradationFrame(){}
+									GradationFrame(){}
 			/// <summary>
 			///		デストラクタ
 			/// </summary>
-			virtual				~GradationFrame(){}
+			virtual					~GradationFrame(){}
+			/// <summary>
+			///		フレームの状態を文字列で返却する．
+			/// </summary>
+			virtual Value::String
+									ToString() const;
 		private:
 			///	<summary>
 			///		フレームを描画する関数．
 			///	</summary>
-			virtual void		_DrawThisFrame() const;
+			virtual void			_DrawThisFrame() const;
 		};
 
 		///	<summary>
@@ -343,47 +387,52 @@ namespace Apocalypse
 			/// <param name = "ImgPath">
 			///		表示する画像ファイルの場所．
 			/// </param>
-								PictureFrame(Base::String ImgPath = _T(""));
+							PictureFrame(Value::String ImgPath = _T(""));
 			///	<summary>
-			///		表示する画像ファイルを差し替える関数．
+			///		画像ファイルの場所．
 			///	</summary>
-			/// <param name = "ImgPath">
-			///		差し替える画像ファイルの場所．
-			/// </param>
-			/// <param name = "Handle">
-			///		<para>（任意指定）差し替える画像ハンドル．</para>
-			///		<para>標準ではファイルから自動で読み込むため指定する必要はない．</para>
-			/// </param>
-			bool				ExchangePicture(Base::String ImgPath, int Handle = NULL);
+			Value::String	Path;
+			/// <summary>
+			///		このフレームのαブレンド．
+			/// </summary>
+			/// <remarks>
+			///		255で不透明．0で透明．
+			/// </remarks>
+			int				Alpha;
 			/// <summary>
 			///		デストラクタ
 			/// </summary>
-			virtual				~PictureFrame();
+			virtual			~PictureFrame();
+			/// <summary>
+			///		フレームの状態を文字列で返却する．
+			/// </summary>
+			virtual Value::String
+							ToString() const;
 		private:
 			///	<summary>
 			///		自身のプロパティを指定する関数．
 			///	</summary>
-			virtual void		_SetProperties();
+			virtual void	_SetProperties();
 			///	<summary>
 			///		フレームを描画する関数．
 			///	</summary>
-			virtual void		_DrawThisFrame() const;
+			virtual void	_DrawThisFrame() const;
 		protected:
 			///	<summary>
 			///		画像ファイルのハンドル
 			///	</summary>
-			int					_PictureHandle;
+			int				_PictureHandle;
 			///	<summary>
 			///		画像ファイルの場所
 			///	</summary>
-			Base::String		_PicturePath;
+			Value::String	_PicturePath;
 		};
 
 		///	<summary>
-		///		タイル状に表示可能なPictureFrame.
+		///		タイル状，拡大表示が表示可能なPictureFrame.
 		///	</summary>
 		/// <remarks>
-		///		Width, Heightの値を設定することで読み込んだ画像をタイル状に表示します．
+		///		Width, Heightの値を設定することで読み込んだ画像をタイル状に，あるいは拡大表示して表示します．
 		/// </remarks>
 		/// <example>
 		///		使用例: 
@@ -395,7 +444,7 @@ namespace Apocalypse
 		///		TlPict->SpecifyWithParcent = false;
 		///		</code>
 		/// </example>
-		class TilePictureFrame : public PictureFrame, public EdgeFrame
+		class AreaPictureFrame : virtual public PictureFrame, virtual public EdgeFrame
 		{
 		public:
 			///	<summary>
@@ -405,7 +454,7 @@ namespace Apocalypse
 			/// <param name = "ImgPath">
 			///		表示する画像ファイルの場所．
 			/// </param>
-								TilePictureFrame(Base::String ImgPath = _T(""));
+							AreaPictureFrame(Value::String ImgPath = _T(""));
 			/// <summary>
 			///		このフレームのタイル模様のX座標．
 			/// </summary>
@@ -421,7 +470,7 @@ namespace Apocalypse
 			///		TlPict->TileY++;
 			///		</code>
 			/// </example>
-			int					TileX;
+			int				TileX;
 			/// <summary>
 			///		このフレームのタイル模様のY座標．
 			/// </summary>
@@ -431,7 +480,7 @@ namespace Apocalypse
 			/// <example>
 			///		TilePictureFrame::TileXの例をご覧ください．
 			/// </example>
-			int					TileY;
+			int				TileY;
 			/// <summary>
 			///		引き伸ばして表示するかどうか．
 			/// </summary>
@@ -440,16 +489,21 @@ namespace Apocalypse
 			///		例としては，グラデーションを使用している場合はtrue，タイル模様ならばfalseなどです．
 			///		このプロパティをtrueに指定すると，TileX, TileYは無視されます．
 			/// </remarks>
-			bool				StretchDraw;
+			bool			StretchDraw;
+			/// <summary>
+			///		フレームの状態を文字列で返却する．
+			/// </summary>
+			virtual Value::String
+							ToString() const;
 		private:
 			///	<summary>
 			///		自身のプロパティを指定する関数．
 			///	</summary>
-			virtual void		_SetProperties();
+			virtual void	_SetProperties();
 			///	<summary>
 			///		フレームを描画する関数．
 			///	</summary>
-			virtual void		_DrawThisFrame() const;
+			virtual void	_DrawThisFrame() const;
 		};
 
 		///	<summary>
@@ -475,23 +529,23 @@ namespace Apocalypse
 			/// <param name = "ImgPath">
 			///		表示する画像ファイルの場所．
 			/// </param>
-								MovieFrame(Base::String MovPath = _T(""));
+							MovieFrame(Value::String MovPath = _T(""));
 			///	<summary>
 			///		再生時の音量．0(最小)～10000(最大)で指定する．
 			///	</summary>
-			UINT				Volume;
+			UINT			Volume;
 			///	<summary>
 			///		動画の再生を開始する．
 			///	</summary>
-			void				Play();
+			void			Play();
 			///	<summary>
 			///		動画の再生を一時的に中止する．
 			///	</summary>
-			void				Pause();
+			void			Pause();
 			///	<summary>
 			///		動画の再生を中止する．
 			///	</summary>
-			void				Stop();
+			void			Stop();
 			///	<summary>
 			///		動画の再生状態を取得する．
 			///		戻り値と MoviePlayState クラスの値とを比較演算することで判定する．
@@ -505,16 +559,21 @@ namespace Apocalypse
 			///		}
 			///		</code>
 			/// </example>
-			UINT				State();
+			UINT			State();
+			/// <summary>
+			///		フレームの状態を文字列で返却する．
+			/// </summary>
+			virtual Value::String
+							ToString() const;
 		private:
 			///	<summary>
 			///		自身のプロパティを指定する関数．
 			///	</summary>
-			virtual void		_SetProperties();
+			virtual void	_SetProperties();
 			///	<summary>
 			///		フレームを描画する関数．
 			///	</summary>
-			virtual void		_DrawThisFrame() const;
+			virtual void	_DrawThisFrame() const;
 		};
 
 		///	<summary>
@@ -529,7 +588,7 @@ namespace Apocalypse
 		///		// StringFrameをnewで確保して，色を青にして，自身の情報を描画させる．
 		///		StringFrame* Str = new StringFrame();
 		///		Str->Text = Str->ToString();
-		///		Str->Color = ColorList::Color(ColorList::Blue);
+		///		Str->Color = ColorList::Color(Color::Blue);
 		///		</code>
 		/// </example>
 		class StringFrame : public __FrameBase
@@ -538,17 +597,24 @@ namespace Apocalypse
 			///	<summary>
 			///		描画する文字列．
 			///	</summary>
-			Base::String		Text;
+			Value::String			Text;
 			///	<summary>
 			///		描画するのに使用するフォントのデータ．
 			///	</summary>
-			std::shared_ptr<Font>	
-								TextFont;
+			std::shared_ptr<Font>	TextFont;
 			///	<summary>
 			///		フォントの色．
 			///	</summary>
-			std::shared_ptr<Color>
-								TextColor;
+			std::shared_ptr<Color>	TextColor;
+			/// <summary>
+			///		<para>文字送り用のタイマー．初期状態では文字送りをしない．</para>
+			///		<para>値が100増える度に1文字表示する．</para>
+			/// </summary>
+			Value::Timer			AdvanceTimer;
+			/// <summary>
+			///		フレームの状態を文字列で返却する．
+			/// </summary>
+			virtual Value::String	ToString() const;
 			///	<summary>
 			///		グラデーション・枠線を描画するフレームを作成する際に
 			///		実行される関数．
@@ -556,20 +622,29 @@ namespace Apocalypse
 			/// <param name = "String">
 			///		描画する文字列．
 			/// </param>
-								StringFrame(Base::String String = _T(""));
+									StringFrame(Value::String String = _T(""));
 			/// <summary>
 			///		デストラクタ
 			/// </summary>
-			virtual				~StringFrame(){}
+			virtual					~StringFrame(){}
 		private:
 			///	<summary>
 			///		自身のプロパティを指定する関数．
 			///	</summary>
-			virtual void		_SetProperties();
+			virtual void			_SetProperties();
 			///	<summary>
 			///		フレームを描画する関数．
 			///	</summary>
-			virtual void		_DrawThisFrame() const;
+			virtual void			_DrawThisFrame() const;
+		protected:
+			///	<summary>
+			///		描画する文字(TextからTimerなどを考慮した文字)．
+			///	</summary>
+			Value::String			_DrawText;
+			///	<summary>
+			///		描画する文字を取得（Timer考慮）．
+			///	</summary>
+			void					_SetDrawString();
 		};
 
 		///	<summary>
@@ -579,58 +654,63 @@ namespace Apocalypse
 		///		<para>フォント名，フォントサイズ，フォントの太さなどを管理します．</para>
 		///		<para>標準のフォント名は初期化関数で指定した標準フォントです．</para>
 		/// </remarks>
-		class Font : virtual public Base::__ApcBase
+		class Font : public Base::__ApcBase
 		{
 		public:
 			///	<summary>
 			///		コンストラクタ(無指定版)
 			///	</summary>
-								Font();
+							Font();
 			///	<summary>
 			///		コンストラクタ(サイズ指定版)
 			///	</summary>
-								Font(int FontSize);
+							Font(int FontSize);
 			///	<summary>
 			///		コンストラクタ(名前/サイズ指定版)
 			///	</summary>
-								Font(Base::String FontName, int FontSize);
+							Font(Value::String FontName, int FontSize);
 			///	<summary>
 			///		コンストラクタ(名前/サイズ/太さ指定版)
 			///	</summary>
-								Font(Base::String FontName, int FontSize, int FontThick);
+							Font(Value::String FontName, int FontSize, int FontThick);
 			///	<summary>
 			///		コンストラクタ(全部指定版)
 			///	</summary>
-								Font(Base::String FontName, int FontSize, int FontThick, int FontType);
+							Font(Value::String FontName, int FontSize, int FontThick, int FontType);
 			///	<summary>
 			///		デストラクタ
 			///	</summary>
-			virtual				~Font();
+			virtual			~Font();
+			/// <summary>
+			///		フレームの状態を文字列で返却する．
+			/// </summary>
+			virtual Value::String
+							ToString() const;
 			///	<summary>
 			///		フォントハンドルを取得する．
 			///	</summary>
-			int					_GetFontHandle() const;
+			int				_GetFontHandle() const;
 		private:
 			///	<summary>
 			///		フォント名
 			///	</summary>
-			Base::String		_Name;
+			Value::String	_Name;
 			///	<summary>
 			///		フォントサイズ．
 			///	</summary>
-			int					_Size;
+			int				_Size;
 			///	<summary>
 			///		フォントの太さ．
 			///	</summary>
-			int					_Thick;
+			int				_Thick;
 			///	<summary>
 			///		フォントの種類．
 			///	</summary>
-			int					_Type;
+			int				_Type;
 			///	<summary>
 			///		フォントハンドル
 			///	</summary>
-			int					_Handle;
+			int				_Handle;
 		};
 	
 		///	<summary>
@@ -643,712 +723,588 @@ namespace Apocalypse
 		/// <example>
 		///		使用例: 
 		///		<code>
-		///		// オレンジ色を取得します
-		///		Color::Color(0xFF, 0x80, 0x00);
-		///		// 白色を取得します
+		///		// 透明度50%のオレンジ色を取得します(0x80 = 128 = 255/2)
+		///		Color::Color(0x80, 0xFF, 0x80, 0x00);
+		///		// 透明度0%の白色を取得します
 		///		Color::Color(Color::White);
+		///		// 透明度10%の赤色を取得します(0xE5 = 229 = 255*0.9)
+		///		Color::Color(Color::Red, 0xE5);
+		///		// 透明色を取得します
+		///		Color::Color(Color::Transparent);
 		///		</code>
 		/// </example>
-		class Color : virtual public Base::__ApcBase
+		class Color : public Base::__ApcBase
 		{
 		public:
 			///	<summary>
 			///		色リストデータの列挙体
 			///	</summary>
-			enum				ColorList
+			enum			_ColorList
 			{
 				/// <summary>
 				/// AliceBlue(#F0F8FF)の色を取得します．
 				/// </summary>
-				AliceBlue = 0xF0F8FF,
+				AliceBlue = 0xFFF0F8FF,
 				/// <summary>
 				/// AntiqueWhite(#FAEBD7)の色を取得します．
 				/// </summary>
-				AntiqueWhite = 0xFAEBD7,
+				AntiqueWhite = 0xFFFAEBD7,
 				/// <summary>
 				/// Aqua(#00FFFF)の色を取得します．
 				/// </summary>
-				Aqua = 0x00FFFF,
+				Aqua = 0xFF00FFFF,
 				/// <summary>
 				/// Aquamarine(#7FFFD4)の色を取得します．
 				/// </summary>
-				Aquamarine = 0x7FFFD4,
+				Aquamarine = 0xFF7FFFD4,
 				/// <summary>
 				/// Azure(#F0FFFF)の色を取得します．
 				/// </summary>
-				Azure = 0xF0FFFF,
+				Azure = 0xFFF0FFFF,
 				/// <summary>
 				/// Beige(#F5F5DC)の色を取得します．
 				/// </summary>
-				Beige = 0xF5F5DC,
+				Beige = 0xFFF5F5DC,
 				/// <summary>
 				/// Bisque(#FFE4C4)の色を取得します．
 				/// </summary>
-				Bisque = 0xFFE4C4,
+				Bisque = 0xFFFFE4C4,
 				/// <summary>
 				/// Black(#000000)の色を取得します．
 				/// </summary>
-				Black = 0x000000,
+				Black = 0xFF000000,
 				/// <summary>
 				/// BlanchedAlmond(#FFEBCD)の色を取得します．
 				/// </summary>
-				BlanchedAlmond = 0xFFEBCD,
+				BlanchedAlmond = 0xFFFFEBCD,
 				/// <summary>
 				/// Blue(#0000FF)の色を取得します．
 				/// </summary>
-				Blue = 0x0000FF,
+				Blue = 0xFF0000FF,
 				/// <summary>
 				/// BlueViolet(#8A2BE2)の色を取得します．
 				/// </summary>
-				BlueViolet = 0x8A2BE2,
+				BlueViolet = 0xFF8A2BE2,
 				/// <summary>
 				/// Brown(#A52A2A)の色を取得します．
 				/// </summary>
-				Brown = 0xA52A2A,
+				Brown = 0xFFA52A2A,
 				/// <summary>
 				/// BurlyWood(#DEB887)の色を取得します．
 				/// </summary>
-				BurlyWood = 0xDEB887,
+				BurlyWood = 0xFFDEB887,
 				/// <summary>
 				/// CadetBlue(#5F9EA0)の色を取得します．
 				/// </summary>
-				CadetBlue = 0x5F9EA0,
+				CadetBlue = 0xFF5F9EA0,
 				/// <summary>
 				/// Chartreuse(#7FFF00)の色を取得します．
 				/// </summary>
-				Chartreuse = 0x7FFF00,
+				Chartreuse = 0xFF7FFF00,
 				/// <summary>
 				/// Chocolate(#D2691E)の色を取得します．
 				/// </summary>
-				Chocolate = 0xD2691E,
+				Chocolate = 0xFFD2691E,
 				/// <summary>
 				/// Coral(#FF7F50)の色を取得します．
 				/// </summary>
-				Coral = 0xFF7F50,
+				Coral = 0xFFFF7F50,
 				/// <summary>
 				/// CornflowerBlue(#6495ED)の色を取得します．
 				/// </summary>
-				CornflowerBlue = 0x6495ED,
+				CornflowerBlue = 0xFF6495ED,
 				/// <summary>
 				/// Cornsilk(#FFF8DC)の色を取得します．
 				/// </summary>
-				Cornsilk = 0xFFF8DC,
+				Cornsilk = 0xFFFFF8DC,
 				/// <summary>
 				/// Crimson(#DC143C)の色を取得します．
 				/// </summary>
-				Crimson = 0xDC143C,
+				Crimson = 0xFFDC143C,
 				/// <summary>
 				/// Cyan(#00FFFF)の色を取得します．
 				/// </summary>
-				Cyan = 0x00FFFF,
+				Cyan = 0xFF00FFFF,
 				/// <summary>
 				/// DarkBlue(#00008B)の色を取得します．
 				/// </summary>
-				DarkBlue = 0x00008B,
+				DarkBlue = 0xFF00008B,
 				/// <summary>
 				/// DarkCyan(#008B8B)の色を取得します．
 				/// </summary>
-				DarkCyan = 0x008B8B,
+				DarkCyan = 0xFF008B8B,
 				/// <summary>
 				/// DarkGoldenrod(#B8860B)の色を取得します．
 				/// </summary>
-				DarkGoldenrod = 0xB8860B,
+				DarkGoldenrod = 0xFFB8860B,
 				/// <summary>
 				/// DarkGray(#A9A9A9)の色を取得します．
 				/// </summary>
-				DarkGray = 0xA9A9A9,
+				DarkGray = 0xFFA9A9A9,
 				/// <summary>
 				/// DarkGreen(#006400)の色を取得します．
 				/// </summary>
-				DarkGreen = 0x006400,
+				DarkGreen = 0xFF006400,
 				/// <summary>
 				/// DarkKhaki(#BDB76B)の色を取得します．
 				/// </summary>
-				DarkKhaki = 0xBDB76B,
+				DarkKhaki = 0xFFBDB76B,
 				/// <summary>
 				/// DarkMagenta(#8B008B)の色を取得します．
 				/// </summary>
-				DarkMagenta = 0x8B008B,
+				DarkMagenta = 0xFF8B008B,
 				/// <summary>
 				/// DarkOliveGreen(#556B2F)の色を取得します．
 				/// </summary>
-				DarkOliveGreen = 0x556B2F,
+				DarkOliveGreen = 0xFF556B2F,
 				/// <summary>
 				/// DarkOrange(#FF8C00)の色を取得します．
 				/// </summary>
-				DarkOrange = 0xFF8C00,
+				DarkOrange = 0xFFFF8C00,
 				/// <summary>
 				/// DarkOrchid(#9932CC)の色を取得します．
 				/// </summary>
-				DarkOrchid = 0x9932CC,
+				DarkOrchid = 0xFF9932CC,
 				/// <summary>
 				/// DarkRed(#8B0000)の色を取得します．
 				/// </summary>
-				DarkRed = 0x8B0000,
+				DarkRed = 0xFF8B0000,
 				/// <summary>
 				/// DarkSalmon(#E9967A)の色を取得します．
 				/// </summary>
-				DarkSalmon = 0xE9967A,
+				DarkSalmon = 0xFFE9967A,
 				/// <summary>
 				/// DarkSeaGreen(#8FBC8B)の色を取得します．
 				/// </summary>
-				DarkSeaGreen = 0x8FBC8B,
+				DarkSeaGreen = 0xFF8FBC8B,
 				/// <summary>
 				/// DarkSlateBlue(#483D8B)の色を取得します．
 				/// </summary>
-				DarkSlateBlue = 0x483D8B,
+				DarkSlateBlue = 0xFF483D8B,
 				/// <summary>
 				/// DarkSlateGray(#2F4F4F)の色を取得します．
 				/// </summary>
-				DarkSlateGray = 0x2F4F4F,
+				DarkSlateGray = 0xFF2F4F4F,
 				/// <summary>
 				/// DarkTurquoise(#00CED1)の色を取得します．
 				/// </summary>
-				DarkTurquoise = 0x00CED1,
+				DarkTurquoise = 0xFF00CED1,
 				/// <summary>
 				/// DarkViolet(#9400D3)の色を取得します．
 				/// </summary>
-				DarkViolet = 0x9400D3,
+				DarkViolet = 0xFF9400D3,
 				/// <summary>
 				/// DeepPink(#FF1493)の色を取得します．
 				/// </summary>
-				DeepPink = 0xFF1493,
+				DeepPink = 0xFFFF1493,
 				/// <summary>
 				/// DeepSkyBlue(#00BFFF)の色を取得します．
 				/// </summary>
-				DeepSkyBlue = 0x00BFFF,
+				DeepSkyBlue = 0xFF00BFFF,
 				/// <summary>
 				/// DimGray(#696969)の色を取得します．
 				/// </summary>
-				DimGray = 0x696969,
+				DimGray = 0xFF696969,
 				/// <summary>
 				/// DodgerBlue(#1E90FF)の色を取得します．
 				/// </summary>
-				DodgerBlue = 0x1E90FF,
+				DodgerBlue = 0xFF1E90FF,
 				/// <summary>
 				/// Firebrick(#B22222)の色を取得します．
 				/// </summary>
-				Firebrick = 0xB22222,
+				Firebrick = 0xFFB22222,
 				/// <summary>
 				/// FloralWhite(#FFFAF0)の色を取得します．
 				/// </summary>
-				FloralWhite = 0xFFFAF0,
+				FloralWhite = 0xFFFFFAF0,
 				/// <summary>
 				/// ForestGreen(#228B22)の色を取得します．
 				/// </summary>
-				ForestGreen = 0x228B22,
+				ForestGreen = 0xFF228B22,
 				/// <summary>
 				/// Fuchsia(#FF00FF)の色を取得します．
 				/// </summary>
-				Fuchsia = 0xFF00FF,
+				Fuchsia = 0xFFFF00FF,
 				/// <summary>
 				/// Gainsboro(#DCDCDC)の色を取得します．
 				/// </summary>
-				Gainsboro = 0xDCDCDC,
+				Gainsboro = 0xFFDCDCDC,
 				/// <summary>
 				/// GhostWhite(#F8F8FF)の色を取得します．
 				/// </summary>
-				GhostWhite = 0xF8F8FF,
+				GhostWhite = 0xFFF8F8FF,
 				/// <summary>
 				/// Gold(#FFD700)の色を取得します．
 				/// </summary>
-				Gold = 0xFFD700,
+				Gold = 0xFFFFD700,
 				/// <summary>
 				/// Goldenrod(#DAA520)の色を取得します．
 				/// </summary>
-				Goldenrod = 0xDAA520,
+				Goldenrod = 0xFFDAA520,
 				/// <summary>
 				/// Gray(#808080)の色を取得します．
 				/// </summary>
-				Gray = 0x808080,
+				Gray = 0xFF808080,
 				/// <summary>
 				/// Green(#008000)の色を取得します．
 				/// </summary>
-				Green = 0x008000,
+				Green = 0xFF008000,
 				/// <summary>
 				/// GreenYellow(#ADFF2F)の色を取得します．
 				/// </summary>
-				GreenYellow = 0xADFF2F,
+				GreenYellow = 0xFFADFF2F,
 				/// <summary>
 				/// Honeydew(#F0FFF0)の色を取得します．
 				/// </summary>
-				Honeydew = 0xF0FFF0,
+				Honeydew = 0xFFF0FFF0,
 				/// <summary>
 				/// HotPink(#FF69B4)の色を取得します．
 				/// </summary>
-				HotPink = 0xFF69B4,
+				HotPink = 0xFFFF69B4,
 				/// <summary>
 				/// IndianRed(#CD5C5C)の色を取得します．
 				/// </summary>
-				IndianRed = 0xCD5C5C,
+				IndianRed = 0xFFCD5C5C,
 				/// <summary>
 				/// Indigo(#4B0082)の色を取得します．
 				/// </summary>
-				Indigo = 0x4B0082,
+				Indigo = 0xFF4B0082,
 				/// <summary>
 				/// Ivory(#FFFFF0)の色を取得します．
 				/// </summary>
-				Ivory = 0xFFFFF0,
+				Ivory = 0xFFFFFFF0,
 				/// <summary>
 				/// Khaki(#F0E68C)の色を取得します．
 				/// </summary>
-				Khaki = 0xF0E68C,
+				Khaki = 0xFFF0E68C,
 				/// <summary>
 				/// Lavender(#E6E6FA)の色を取得します．
 				/// </summary>
-				Lavender = 0xE6E6FA,
+				Lavender = 0xFFE6E6FA,
 				/// <summary>
 				/// LavenderBlush(#FFF0F5)の色を取得します．
 				/// </summary>
-				LavenderBlush = 0xFFF0F5,
+				LavenderBlush = 0xFFFFF0F5,
 				/// <summary>
 				/// LawnGreen(#7CFC00)の色を取得します．
 				/// </summary>
-				LawnGreen = 0x7CFC00,
+				LawnGreen = 0xFF7CFC00,
 				/// <summary>
 				/// LemonChiffon(#FFFACD)の色を取得します．
 				/// </summary>
-				LemonChiffon = 0xFFFACD,
+				LemonChiffon = 0xFFFFFACD,
 				/// <summary>
 				/// LightBlue(#ADD8E6)の色を取得します．
 				/// </summary>
-				LightBlue = 0xADD8E6,
+				LightBlue = 0xFFADD8E6,
 				/// <summary>
 				/// LightCoral(#F08080)の色を取得します．
 				/// </summary>
-				LightCoral = 0xF08080,
+				LightCoral = 0xFFF08080,
 				/// <summary>
 				/// LightCyan(#E0FFFF)の色を取得します．
 				/// </summary>
-				LightCyan = 0xE0FFFF,
+				LightCyan = 0xFFE0FFFF,
 				/// <summary>
 				/// LightGoldenrodYellow(#FAFAD2)の色を取得します．
 				/// </summary>
-				LightGoldenrodYellow = 0xFAFAD2,
+				LightGoldenrodYellow = 0xFFFAFAD2,
 				/// <summary>
 				/// LightGreen(#90EE90)の色を取得します．
 				/// </summary>
-				LightGreen = 0x90EE90,
+				LightGreen = 0xFF90EE90,
 				/// <summary>
 				/// LightGray(#D3D3D3)の色を取得します．
 				/// </summary>
-				LightGray = 0xD3D3D3,
+				LightGray = 0xFFD3D3D3,
 				/// <summary>
 				/// LightPink(#FFB6C1)の色を取得します．
 				/// </summary>
-				LightPink = 0xFFB6C1,
+				LightPink = 0xFFFFB6C1,
 				/// <summary>
 				/// LightSalmon(#FFA07A)の色を取得します．
 				/// </summary>
-				LightSalmon = 0xFFA07A,
+				LightSalmon = 0xFFFFA07A,
 				/// <summary>
 				/// LightSeaGreen(#20B2AA)の色を取得します．
 				/// </summary>
-				LightSeaGreen = 0x20B2AA,
+				LightSeaGreen = 0xFF20B2AA,
 				/// <summary>
 				/// LightSkyBlue(#87CEFA)の色を取得します．
 				/// </summary>
-				LightSkyBlue = 0x87CEFA,
+				LightSkyBlue = 0xFF87CEFA,
 				/// <summary>
 				/// LightSlateGray(#778899)の色を取得します．
 				/// </summary>
-				LightSlateGray = 0x778899,
+				LightSlateGray = 0xFF778899,
 				/// <summary>
 				/// LightSteelBlue(#B0C4DE)の色を取得します．
 				/// </summary>
-				LightSteelBlue = 0xB0C4DE,
+				LightSteelBlue = 0xFFB0C4DE,
 				/// <summary>
 				/// LightYellow(#FFFFE0)の色を取得します．
 				/// </summary>
-				LightYellow = 0xFFFFE0,
+				LightYellow = 0xFFFFFFE0,
 				/// <summary>
 				/// Lime(#00FF00)の色を取得します．
 				/// </summary>
-				Lime = 0x00FF00,
+				Lime = 0xFF00FF00,
 				/// <summary>
 				/// LimeGreen(#32CD32)の色を取得します．
 				/// </summary>
-				LimeGreen = 0x32CD32,
+				LimeGreen = 0xFF32CD32,
 				/// <summary>
 				/// Linen(#FAF0E6)の色を取得します．
 				/// </summary>
-				Linen = 0xFAF0E6,
+				Linen = 0xFFFAF0E6,
 				/// <summary>
 				/// Magenta(#FF00FF)の色を取得します．
 				/// </summary>
-				Magenta = 0xFF00FF,
+				Magenta = 0xFFFF00FF,
 				/// <summary>
 				/// Maroon(#800000)の色を取得します．
 				/// </summary>
-				Maroon = 0x800000,
+				Maroon = 0xFF800000,
 				/// <summary>
 				/// MediumAquamarine(#66CDAA)の色を取得します．
 				/// </summary>
-				MediumAquamarine = 0x66CDAA,
+				MediumAquamarine = 0xFF66CDAA,
 				/// <summary>
 				/// MediumBlue(#0000CD)の色を取得します．
 				/// </summary>
-				MediumBlue = 0x0000CD,
+				MediumBlue = 0xFF0000CD,
 				/// <summary>
 				/// MediumOrchid(#BA55D3)の色を取得します．
 				/// </summary>
-				MediumOrchid = 0xBA55D3,
+				MediumOrchid = 0xFFBA55D3,
 				/// <summary>
 				/// MediumPurple(#9370DB)の色を取得します．
 				/// </summary>
-				MediumPurple = 0x9370DB,
+				MediumPurple = 0xFF9370DB,
 				/// <summary>
 				/// MediumSeaGreen(#3CB371)の色を取得します．
 				/// </summary>
-				MediumSeaGreen = 0x3CB371,
+				MediumSeaGreen = 0xFF3CB371,
 				/// <summary>
 				/// MediumSlateBlue(#7B68EE)の色を取得します．
 				/// </summary>
-				MediumSlateBlue = 0x7B68EE,
+				MediumSlateBlue = 0xFF7B68EE,
 				/// <summary>
 				/// MediumSpringGreen(#00FA9A)の色を取得します．
 				/// </summary>
-				MediumSpringGreen = 0x00FA9A,
+				MediumSpringGreen = 0xFF00FA9A,
 				/// <summary>
 				/// MediumTurquoise(#48D1CC)の色を取得します．
 				/// </summary>
-				MediumTurquoise = 0x48D1CC,
+				MediumTurquoise = 0xFF48D1CC,
 				/// <summary>
 				/// MediumVioletRed(#C71585)の色を取得します．
 				/// </summary>
-				MediumVioletRed = 0xC71585,
+				MediumVioletRed = 0xFFC71585,
 				/// <summary>
 				/// MidnightBlue(#191970)の色を取得します．
 				/// </summary>
-				MidnightBlue = 0x191970,
+				MidnightBlue = 0xFF191970,
 				/// <summary>
 				/// MintCream(#F5FFFA)の色を取得します．
 				/// </summary>
-				MintCream = 0xF5FFFA,
+				MintCream = 0xFFF5FFFA,
 				/// <summary>
 				/// MistyRose(#FFE4E1)の色を取得します．
 				/// </summary>
-				MistyRose = 0xFFE4E1,
+				MistyRose = 0xFFFFE4E1,
 				/// <summary>
 				/// Moccasin(#FFE4B5)の色を取得します．
 				/// </summary>
-				Moccasin = 0xFFE4B5,
+				Moccasin = 0xFFFFE4B5,
 				/// <summary>
 				/// NavajoWhite(#FFDEAD)の色を取得します．
 				/// </summary>
-				NavajoWhite = 0xFFDEAD,
+				NavajoWhite = 0xFFFFDEAD,
 				/// <summary>
 				/// Navy(#000080)の色を取得します．
 				/// </summary>
-				Navy = 0x000080,
+				Navy = 0xFF000080,
 				/// <summary>
 				/// OldLace(#FDF5E6)の色を取得します．
 				/// </summary>
-				OldLace = 0xFDF5E6,
+				OldLace = 0xFFFDF5E6,
 				/// <summary>
 				/// Olive(#808000)の色を取得します．
 				/// </summary>
-				Olive = 0x808000,
+				Olive = 0xFF808000,
 				/// <summary>
 				/// OliveDrab(#6B8E23)の色を取得します．
 				/// </summary>
-				OliveDrab = 0x6B8E23,
+				OliveDrab = 0xFF6B8E23,
 				/// <summary>
 				/// Orange(#FFA500)の色を取得します．
 				/// </summary>
-				Orange = 0xFFA500,
+				Orange = 0xFFFFA500,
 				/// <summary>
 				/// OrangeRed(#FF4500)の色を取得します．
 				/// </summary>
-				OrangeRed = 0xFF4500,
+				OrangeRed = 0xFFFF4500,
 				/// <summary>
 				/// Orchid(#DA70D6)の色を取得します．
 				/// </summary>
-				Orchid = 0xDA70D6,
+				Orchid = 0xFFDA70D6,
 				/// <summary>
 				/// PaleGoldenrod(#EEE8AA)の色を取得します．
 				/// </summary>
-				PaleGoldenrod = 0xEEE8AA,
+				PaleGoldenrod = 0xFFEEE8AA,
 				/// <summary>
 				/// PaleGreen(#98FB98)の色を取得します．
 				/// </summary>
-				PaleGreen = 0x98FB98,
+				PaleGreen = 0xFF98FB98,
 				/// <summary>
 				/// PaleTurquoise(#AFEEEE)の色を取得します．
 				/// </summary>
-				PaleTurquoise = 0xAFEEEE,
+				PaleTurquoise = 0xFFAFEEEE,
 				/// <summary>
 				/// PaleVioletRed(#DB7093)の色を取得します．
 				/// </summary>
-				PaleVioletRed = 0xDB7093,
+				PaleVioletRed = 0xFFDB7093,
 				/// <summary>
 				/// PapayaWhip(#FFEFD5)の色を取得します．
 				/// </summary>
-				PapayaWhip = 0xFFEFD5,
+				PapayaWhip = 0xFFFFEFD5,
 				/// <summary>
 				/// PeachPuff(#FFDAB9)の色を取得します．
 				/// </summary>
-				PeachPuff = 0xFFDAB9,
+				PeachPuff = 0xFFFFDAB9,
 				/// <summary>
 				/// Peru(#CD853F)の色を取得します．
 				/// </summary>
-				Peru = 0xCD853F,
+				Peru = 0xFFCD853F,
 				/// <summary>
 				/// Pink(#FFC0CB)の色を取得します．
 				/// </summary>
-				Pink = 0xFFC0CB,
+				Pink = 0xFFFFC0CB,
 				/// <summary>
 				/// Plum(#DDA0DD)の色を取得します．
 				/// </summary>
-				Plum = 0xDDA0DD,
+				Plum = 0xFFDDA0DD,
 				/// <summary>
 				/// PowderBlue(#B0E0E6)の色を取得します．
 				/// </summary>
-				PowderBlue = 0xB0E0E6,
+				PowderBlue = 0xFFB0E0E6,
 				/// <summary>
 				/// Purple(#800080)の色を取得します．
 				/// </summary>
-				Purple = 0x800080,
+				Purple = 0xFF800080,
 				/// <summary>
 				/// Red(#FF0000)の色を取得します．
 				/// </summary>
-				Red = 0xFF0000,
+				Red = 0xFFFF0000,
 				/// <summary>
 				/// RosyBrown(#BC8F8F)の色を取得します．
 				/// </summary>
-				RosyBrown = 0xBC8F8F,
+				RosyBrown = 0xFFBC8F8F,
 				/// <summary>
 				/// RoyalBlue(#4169E1)の色を取得します．
 				/// </summary>
-				RoyalBlue = 0x4169E1,
+				RoyalBlue = 0xFF4169E1,
 				/// <summary>
 				/// SaddleBrown(#8B4513)の色を取得します．
 				/// </summary>
-				SaddleBrown = 0x8B4513,
+				SaddleBrown = 0xFF8B4513,
 				/// <summary>
 				/// Salmon(#FA8072)の色を取得します．
 				/// </summary>
-				Salmon = 0xFA8072,
+				Salmon = 0xFFFA8072,
 				/// <summary>
 				/// SandyBrown(#F4A460)の色を取得します．
 				/// </summary>
-				SandyBrown = 0xF4A460,
+				SandyBrown = 0xFFF4A460,
 				/// <summary>
 				/// SeaGreen(#2E8B57)の色を取得します．
 				/// </summary>
-				SeaGreen = 0x2E8B57,
+				SeaGreen = 0xFF2E8B57,
 				/// <summary>
 				/// SeaShell(#FFF5EE)の色を取得します．
 				/// </summary>
-				SeaShell = 0xFFF5EE,
+				SeaShell = 0xFFFFF5EE,
 				/// <summary>
 				/// Sienna(#A0522D)の色を取得します．
 				/// </summary>
-				Sienna = 0xA0522D,
+				Sienna = 0xFFA0522D,
 				/// <summary>
 				/// Silver(#C0C0C0)の色を取得します．
 				/// </summary>
-				Silver = 0xC0C0C0,
+				Silver = 0xFFC0C0C0,
 				/// <summary>
 				/// SkyBlue(#87CEEB)の色を取得します．
 				/// </summary>
-				SkyBlue = 0x87CEEB,
+				SkyBlue = 0xFF87CEEB,
 				/// <summary>
 				/// SlateBlue(#6A5ACD)の色を取得します．
 				/// </summary>
-				SlateBlue = 0x6A5ACD,
+				SlateBlue = 0xFF6A5ACD,
 				/// <summary>
 				/// SlateGray(#708090)の色を取得します．
 				/// </summary>
-				SlateGray = 0x708090,
+				SlateGray = 0xFF708090,
 				/// <summary>
 				/// Snow(#FFFAFA)の色を取得します．
 				/// </summary>
-				Snow = 0xFFFAFA,
+				Snow = 0xFFFFFAFA,
 				/// <summary>
 				/// SpringGreen(#00FF7F)の色を取得します．
 				/// </summary>
-				SpringGreen = 0x00FF7F,
+				SpringGreen = 0xFF00FF7F,
 				/// <summary>
 				/// SteelBlue(#4682B4)の色を取得します．
 				/// </summary>
-				SteelBlue = 0x4682B4,
+				SteelBlue = 0xFF4682B4,
 				/// <summary>
 				/// Tan(#D2B48C)の色を取得します．
 				/// </summary>
-				Tan = 0xD2B48C,
+				Tan = 0xFFD2B48C,
 				/// <summary>
 				/// Teal(#008080)の色を取得します．
 				/// </summary>
-				Teal = 0x008080,
+				Teal = 0xFF008080,
 				/// <summary>
 				/// Thistle(#D8BFD8)の色を取得します．
 				/// </summary>
-				Thistle = 0xD8BFD8,
+				Thistle = 0xFFD8BFD8,
 				/// <summary>
 				/// Tomato(#FF6347)の色を取得します．
 				/// </summary>
-				Tomato = 0xFF6347,
+				Tomato = 0xFFFF6347,
+				/// <summary>
+				/// Transparent(透明色)の色を取得します．
+				/// </summary>
+				Transparent = 0x00FFFFFF,
 				/// <summary>
 				/// Turquoise(#40E0D0)の色を取得します．
 				/// </summary>
-				Turquoise = 0x40E0D0,
+				Turquoise = 0xFF40E0D0,
 				/// <summary>
 				/// Violet(#EE82EE)の色を取得します．
 				/// </summary>
-				Violet = 0xEE82EE,
+				Violet = 0xFFEE82EE,
 				/// <summary>
 				/// Wheat(#F5DEB3)の色を取得します．
 				/// </summary>
-				Wheat = 0xF5DEB3,
+				Wheat = 0xFFF5DEB3,
 				/// <summary>
 				/// White(#FFFFFF)の色を取得します．
 				/// </summary>
-				White = 0xFFFFFF,
+				White = 0xFFFFFFFF,
 				/// <summary>
 				/// WhiteSmoke(#F5F5F5)の色を取得します．
 				/// </summary>
-				WhiteSmoke = 0xF5F5F5,
+				WhiteSmoke = 0xFFF5F5F5,
 				/// <summary>
 				/// Yellow(#FFFF00)の色を取得します．
 				/// </summary>
-				Yellow = 0xFFFF00,
+				Yellow = 0xFFFFFF00,
 				/// <summary>
 				/// YellowGreen(#9ACD32)の色を取得します．
 				/// </summary>
-				YellowGreen = 0x9ACD32,
-				/// <summary>
-				/// ActiveBorder(#B4B4B4)の色を取得します．
-				/// </summary>
-				ActiveBorder = 0xB4B4B4,
-				/// <summary>
-				/// ActiveCaption(#99B4D1)の色を取得します．
-				/// </summary>
-				ActiveCaption = 0x99B4D1,
-				/// <summary>
-				/// ActiveCaptionText(#000000)の色を取得します．
-				/// </summary>
-				ActiveCaptionText = 0x000000,
-				/// <summary>
-				/// AppWorkspace(#ABABAB)の色を取得します．
-				/// </summary>
-				AppWorkspace = 0xABABAB,
-				/// <summary>
-				/// ButtonFace(#F0F0F0)の色を取得します．
-				/// </summary>
-				ButtonFace = 0xF0F0F0,
-				/// <summary>
-				/// ButtonHighlight(#FFFFFF)の色を取得します．
-				/// </summary>
-				ButtonHighlight = 0xFFFFFF,
-				/// <summary>
-				/// ButtonShadow(#A0A0A0)の色を取得します．
-				/// </summary>
-				ButtonShadow = 0xA0A0A0,
-				/// <summary>
-				/// Control(#F0F0F0)の色を取得します．
-				/// </summary>
-				Control = 0xF0F0F0,
-				/// <summary>
-				/// ControlDark(#A0A0A0)の色を取得します．
-				/// </summary>
-				ControlDark = 0xA0A0A0,
-				/// <summary>
-				/// ControlDarkDark(#696969)の色を取得します．
-				/// </summary>
-				ControlDarkDark = 0x696969,
-				/// <summary>
-				/// ControlLight(#E3E3E3)の色を取得します．
-				/// </summary>
-				ControlLight = 0xE3E3E3,
-				/// <summary>
-				/// ControlLightLight(#FFFFFF)の色を取得します．
-				/// </summary>
-				ControlLightLight = 0xFFFFFF,
-				/// <summary>
-				/// ControlText(#000000)の色を取得します．
-				/// </summary>
-				ControlText = 0x000000,
-				/// <summary>
-				/// Desktop(#000000)の色を取得します．
-				/// </summary>
-				Desktop = 0x000000,
-				/// <summary>
-				/// GradientActiveCaption(#B9D1EA)の色を取得します．
-				/// </summary>
-				GradientActiveCaption = 0xB9D1EA,
-				/// <summary>
-				/// GradientInactiveCaption(#D7E4F2)の色を取得します．
-				/// </summary>
-				GradientInactiveCaption = 0xD7E4F2,
-				/// <summary>
-				/// GrayText(#6D6D6D)の色を取得します．
-				/// </summary>
-				GrayText = 0x6D6D6D,
-				/// <summary>
-				/// Highlight(#3399FF)の色を取得します．
-				/// </summary>
-				Highlight = 0x3399FF,
-				/// <summary>
-				/// HighlightText(#FFFFFF)の色を取得します．
-				/// </summary>
-				HighlightText = 0xFFFFFF,
-				/// <summary>
-				/// HotTrack(#0066CC)の色を取得します．
-				/// </summary>
-				HotTrack = 0x0066CC,
-				/// <summary>
-				/// InactiveBorder(#F4F7FC)の色を取得します．
-				/// </summary>
-				InactiveBorder = 0xF4F7FC,
-				/// <summary>
-				/// InactiveCaption(#BFCDDB)の色を取得します．
-				/// </summary>
-				InactiveCaption = 0xBFCDDB,
-				/// <summary>
-				/// InactiveCaptionText(#000000)の色を取得します．
-				/// </summary>
-				InactiveCaptionText = 0x000000,
-				/// <summary>
-				/// Info(#FFFFE1)の色を取得します．
-				/// </summary>
-				Info = 0xFFFFE1,
-				/// <summary>
-				/// InfoText(#000000)の色を取得します．
-				/// </summary>
-				InfoText = 0x000000,
-				/// <summary>
-				/// Menu(#F0F0F0)の色を取得します．
-				/// </summary>
-				Menu = 0xF0F0F0,
-				/// <summary>
-				/// MenuBar(#F0F0F0)の色を取得します．
-				/// </summary>
-				MenuBar = 0xF0F0F0,
-				/// <summary>
-				/// MenuHighlight(#3399FF)の色を取得します．
-				/// </summary>
-				MenuHighlight = 0x3399FF,
-				/// <summary>
-				/// MenuText(#000000)の色を取得します．
-				/// </summary>
-				MenuText = 0x000000,
-				/// <summary>
-				/// ScrollBar(#C8C8C8)の色を取得します．
-				/// </summary>
-				ScrollBar = 0xC8C8C8,
-				/// <summary>
-				/// Window(#FFFFFF)の色を取得します．
-				/// </summary>
-				Window = 0xFFFFFF,
-				/// <summary>
-				/// WindowFrame(#646464)の色を取得します．
-				/// </summary>
-				WindowFrame = 0x646464,
-				/// <summary>
-				/// WindowText(#000000)の色を取得します．
-				/// </summary>
-				WindowText = 0x000000,
+				YellowGreen = 0xFF9ACD32,
 			};
 			/// <summary>
 			///		色データを作成する（DxライブラリのGetColorと同じ）
@@ -1362,21 +1318,80 @@ namespace Apocalypse
 			/// <param name = "B">
 			///		青の強度．0から255までの範囲で指定する．
 			/// </param>
-								Color(int R, int G, int B);
+							Color(int Rp, int Gp, int Bp);
+			/// <summary>
+			///		色データを作成する
+			/// </summary>
+			/// <param name = "A">
+			///		透明度．0から255までの範囲で指定する．0で透明．
+			/// </param>
+			/// <param name = "R">
+			///		赤の強度．0から255までの範囲で指定する．
+			/// </param>
+			/// <param name = "G">
+			///		緑の強度．0から255までの範囲で指定する．
+			/// </param>
+			/// <param name = "B">
+			///		青の強度．0から255までの範囲で指定する．
+			/// </param>
+							Color(int Ap, int Rp, int Gp, int Bp);
 			/// <summary>
 			///		色データを作成する（HTML等の色コード版）
 			/// </summary>
-			/// <param name = "RGBCode">
-			///		RGBコード．<see cref="ColorList">ColorList</see>内で
+			/// <param name = "ARGBCode">
+			///		透明度情報を含むRGBコード．<see cref="_ColorList">ColorList</see>内で
 			///		定義された値を使用することも可能です．
 			/// </param>
-								Color(ColorList RGBCode);
+							Color(_ColorList ARGBCode);
+			/// <summary>
+			///		色データを作成する（αブレンドを自分で指定する）
+			/// </summary>
+			/// <param name = "RGBCode">
+			///		<para>透明度情報を含まないRGBコード．含まれる場合無視されます．</para>
+			///		<para><see cref="_ColorList">ColorList</see>内で定義された値を使用することも可能です．</para>
+			/// </param>
+			/// <param name = "Alpha">
+			///		この色のαブレンド．
+			/// </param>
+							Color(_ColorList RGBCode, int Alpha);
+			///	<summary>
+			///		色の透明度の強度．
+			///	</summary>
+			int				A;
+			///	<summary>
+			///		色の赤成分の強度．
+			///	</summary>
+			int				R;
+			///	<summary>
+			///		色の緑成分の強度．
+			///	</summary>
+			int				G;
+			///	<summary>
+			///		色の青成分の強度．
+			///	</summary>
+			int				B;
+			/// <summary>
+			///		フレームの状態を文字列で返却する．
+			/// </summary>
+			virtual Value::String
+							ToString() const;
 			/// <summary>
 			///		クラスに登録されている色データを返却する
 			/// </summary>
-			inline DWORD		_GetColorToClass() const;
+			inline DWORD	_GetColor() const;
 			/// <summary>
-			///		自身と対象の色を一定割合でブレンドした結果を返却する．
+			///		クラスに登録されている透明度を適用する
+			/// </summary>
+			inline void		_AppendAlpha() const;
+			/// <summary>
+			///		色データを比較する関数．
+			/// </summary>
+			/// <param name = "Target">
+			///		比較する対象の色クラス．
+			/// </param>
+			bool			_Compare(const std::shared_ptr<Color> Target) const;
+			/// <summary>
+			///		自身と対象の色を一定割合でブレンドした結果のColorのポインタを返却する．
 			/// </summary>
 			/// <param name = "Target">
 			///		自身とブレンドする対象の色データのポインタ．
@@ -1384,19 +1399,8 @@ namespace Apocalypse
 			/// <param name = "Parcent">
 			///		ブレンドする割合．
 			/// </param>
-			DWORD				_GetColorBlends(const std::shared_ptr<Color> Target, int Parcent) const;
-			///	<summary>
-			///		色の赤成分の強度．
-			///	</summary>
-			int					_Red;
-			///	<summary>
-			///		色の緑成分の強度．
-			///	</summary>
-			int					_Green;
-			///	<summary>
-			///		色の青成分の強度．
-			///	</summary>
-			int					_Blue;
+			std::shared_ptr<Color>
+							_GetColorBlends(const std::shared_ptr<Color> Target, int Parcent) const;
 		};
 
 	}

@@ -38,7 +38,7 @@ namespace Apocalypse
 		///		};
 		///		</code>
 		/// </example>
-		class Sequencer : virtual public Base::__ApcBase
+		class Sequencer : public Base::__ApcBase
 		{
 		public:
 			/// <summary>

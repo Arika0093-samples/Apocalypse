@@ -36,9 +36,9 @@ int				KeyBoard::Pushing(Keys TargetKey)
 	// キーの状態を取得する
 	for(int i = 0; i < TargetKey._Size(); i++){
 		// もし初期状態or前の値より小さいなら
-		if(Result == 0 || Result > TargetKey._Get(i)){
+		if(Result == 0 || Result > GetInstance()._KeyInput[TargetKey._Get(i)]){
 			// 取得
-			Result = TargetKey._Get(i);
+			Result = GetInstance()._KeyInput[TargetKey._Get(i)];
 		}
 		// もし値がマイナスなら
 		if(Result < 0){
@@ -60,9 +60,9 @@ bool			KeyBoard::PushStart(Keys TargetKey)
 	// キーの状態を取得する
 	for(int i = 0; i < TargetKey._Size(); i++){
 		// 全てのキーが押されてるか確認
-		Result	= (TargetKey._Get(i) > 0);
+		Result	= (GetInstance()._KeyInput[TargetKey._Get(i)] > 0);
 		// 1つ以上のキーが現在押されたばかりかどうか取得
-		NowTime = (NowTime ? true : (TargetKey._Get(i) == 1));
+		NowTime = (NowTime ? true : (GetInstance()._KeyInput[TargetKey._Get(i)] == 1));
 		// もし値がfalseなら
 		if(!Result){
 			// 押されていない
@@ -83,9 +83,9 @@ bool			KeyBoard::OutStart(Keys TargetKey)
 	// キーの状態を取得する
 	for(int i = 0; i < TargetKey._Size(); i++){
 		// 全てのキーが離されているか確認
-		Result	= (TargetKey._Get(i) < 0);
+		Result	= (GetInstance()._KeyInput[TargetKey._Get(i)] < 0);
 		// 1つ以上のキーが現在離されたばかりかどうか取得
-		NowTime = (NowTime ? true : (TargetKey._Get(i) == -1));
+		NowTime = (NowTime ? true : (GetInstance()._KeyInput[TargetKey._Get(i)] == -1));
 		// もし値がfalseなら
 		if(!Result){
 			// 押されている
@@ -94,6 +94,21 @@ bool			KeyBoard::OutStart(Keys TargetKey)
 	}
 	// 返却
 	return (Result && NowTime);
+}
+
+// ----------------------------------------------------
+//	Key::ToString
+// ----------------------------------------------------
+String			KeyBoard::ToString() const
+{
+	// 返却する文字列
+	String Result;
+	// forループで全キーボードの状態を文字に格納
+	for(int i = 0; i < sizeof(_KeyInput) / sizeof(int); i++){
+		// 流す
+		Result << _KeyInput[i] << _T(",");
+	}
+	return Result;
 }
 
 // ----------------------------------------------------
@@ -217,7 +232,7 @@ bool			Mouse::IsMove()
 // ----------------------------------------------------
 //	Mouse::GetMousePosition
 // ----------------------------------------------------
-Base::Point		Mouse::GetPosition()
+Value::Point		Mouse::GetPosition()
 {
 	// 取得しておいたマウス位置を返却する
 	return GetInstance()._MouseLocation;
@@ -235,6 +250,16 @@ void			Mouse::SetPosition(int X, int Y)
 	GetInstance()._MouseLocation.Y = Y;
 	// 終了
 	return;
+}
+
+// ----------------------------------------------------
+//	Mouse::ToString
+// ----------------------------------------------------
+String			Mouse::ToString() const
+{
+	// 左の押されてる時間 / 右の押されてる時間
+	return String() << _T("Left: ") << LeftPushing()
+		<< _T(", Right: ") << RightPushing();
 }
 
 // ----------------------------------------------------

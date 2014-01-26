@@ -20,9 +20,9 @@ void			__EventHandleList::_ArrayCheck() const
 		// 取得する
 		auto eHandle = *Iterator;
 		// イベント条件を満たしているかどうか確認
-		if(eHandle->_ContinueFlag || eHandle->_Type()){
+		if(eHandle->_Type()){
 			// 起こってるならイベントの関数を実行．
-			eHandle->_ContinueFlag = !eHandle->_Function();
+			eHandle->_Function();
 		}
 		// 次のものを見る
 		Iterator++;
@@ -38,6 +38,15 @@ std::shared_ptr<EventHandle>
 	// 引数で渡されたハンドルを追加する
 	_EventItems.push_back(Handle);
 	return Handle;
+}
+
+// ----------------------------------------------------
+//	EventHandleList::ToString
+// ----------------------------------------------------
+String			__EventHandleList::ToString() const
+{
+	// 情報を返却する
+	return String() << _T("EventCount: ") << _EventItems.size();
 }
 
 // ----------------------------------------------------
@@ -60,7 +69,6 @@ std::shared_ptr<EventHandle>
 	_Function		= Func;
 	_Type			= EventType::Process();
 	// 繰り返しフラグをfalseに指定する
-	_ContinueFlag	= false;
 }
 
 // ----------------------------------------------------
@@ -71,8 +79,16 @@ std::shared_ptr<EventHandle>
 	// 関数を指定
 	_Function		= Func;
 	_Type			= Ty;
-	// 繰り返しフラグをfalseに指定する
-	_ContinueFlag	= false;
+}
+
+// ----------------------------------------------------
+//	EventHandle::ToString
+// ----------------------------------------------------
+String			EventHandle::ToString() const
+{
+	// 情報を返却する
+	return String() << _T("Function: ") << !_Function.empty()
+		<< _T(", Flag: ") << _Type.empty();
 }
 
 // ----------------------------------------------------
@@ -104,9 +120,9 @@ EventFlag		EventType::MouseOnArea(int X, int Y, int Margin)
 // ----------------------------------------------------
 //	EventType::MouseOnArea
 // ----------------------------------------------------
-EventFlag		EventType::MouseOnArea(Base::Point &Pt, int Margin)
+EventFlag		EventType::MouseOnArea(Value::Point &Pt, int Margin)
 {
-	return MouseOnArea((int)Pt.X, (int)Pt.Y, Margin, Margin);
+	return MouseOnArea(Pt, Margin, Margin);
 }
 
 // ----------------------------------------------------
@@ -125,9 +141,14 @@ EventFlag		EventType::MouseOnArea(int X, int Y, int MarginWidth, int MarginHeigh
 // ----------------------------------------------------
 //	EventType::MouseOnArea
 // ----------------------------------------------------
-EventFlag		EventType::MouseOnArea(Base::Point &Pt, int MarginWidth, int MarginHeight)
+EventFlag		EventType::MouseOnArea(Value::Point &Pt, int MarginWidth, int MarginHeight)
 {
-	return MouseOnArea((int)Pt.X, (int)Pt.Y, MarginWidth, MarginHeight);
+	return([&](){ return (
+		Mouse::GetPosition().X >= Pt.X - MarginWidth &&
+		Mouse::GetPosition().X <= Pt.X + MarginWidth &&
+		Mouse::GetPosition().Y >= Pt.Y - MarginHeight &&
+		Mouse::GetPosition().Y <= Pt.Y + MarginHeight);
+	});
 }
 
 // ----------------------------------------------------
@@ -135,7 +156,16 @@ EventFlag		EventType::MouseOnArea(Base::Point &Pt, int MarginWidth, int MarginHe
 // ----------------------------------------------------
 EventFlag		EventType::MouseOnFrame(Draw::__FrameBase &Frame)
 {
-	return MouseOnArea(Frame.Points, Frame.GetWidth(), Frame.GetHeight());
+	return([&](){
+		// 座標取得
+		Point Pt = Frame.GetLocation();
+		// 返却
+		return (
+			Mouse::GetPosition().X >= Pt.X &&
+			Mouse::GetPosition().X <= Pt.X + Frame.GetWidth() &&
+			Mouse::GetPosition().Y >= Pt.Y &&
+			Mouse::GetPosition().Y <= Pt.Y + Frame.GetHeight());
+	});
 }
 
 // ----------------------------------------------------
@@ -143,7 +173,7 @@ EventFlag		EventType::MouseOnFrame(Draw::__FrameBase &Frame)
 // ----------------------------------------------------
 EventFlag		EventType::MouseLClick()
 {
-	return [](){ return Mouse::LeftPushStart; };
+	return [](){ return Mouse::LeftPushStart(); };
 }
 
 // ----------------------------------------------------
@@ -151,7 +181,7 @@ EventFlag		EventType::MouseLClick()
 // ----------------------------------------------------
 EventFlag		EventType::MouseRClick()
 {
-	return [](){ return Mouse::RightPushStart; };
+	return [](){ return Mouse::RightPushStart(); };
 }
 
 // ----------------------------------------------------
@@ -191,7 +221,7 @@ EventFlag		EventType::MouseRUp()
 // ----------------------------------------------------
 EventFlag		EventType::KeyBoardPush(Keys CheckKey)
 {
-	return [&](){ return KeyBoard::PushStart(CheckKey);};
+	return [=](){ return KeyBoard::PushStart(CheckKey);};
 }
 
 // ----------------------------------------------------
@@ -199,7 +229,7 @@ EventFlag		EventType::KeyBoardPush(Keys CheckKey)
 // ----------------------------------------------------
 EventFlag		EventType::KeyBoardDown(Keys CheckKey)
 {
-	return [&](){ return (KeyBoard::Pushing(CheckKey) >= 1);};
+	return [=](){ return (KeyBoard::Pushing(CheckKey) >= 1);};
 }
 
 // ----------------------------------------------------
@@ -207,7 +237,7 @@ EventFlag		EventType::KeyBoardDown(Keys CheckKey)
 // ----------------------------------------------------
 EventFlag		EventType::KeyBoardUp(Keys CheckKey)
 {
-	return [&](){ return KeyBoard::OutStart(CheckKey);};
+	return [=](){ return KeyBoard::OutStart(CheckKey);};
 }
 
 // ----------------------------------------------------
@@ -215,5 +245,5 @@ EventFlag		EventType::KeyBoardUp(Keys CheckKey)
 // ----------------------------------------------------
 EventFlag		EventType::AnyPush()
 {
-	return [&](){ return KeyBoard::AnyPushing();};
+	return [](){ return KeyBoard::AnyPushing();};
 }

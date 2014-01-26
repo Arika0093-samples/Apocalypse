@@ -38,7 +38,8 @@ namespace Apocalypse
 		// ------------------------------------------------
 		//	Typedef
 		// ------------------------------------------------
-		typedef				boost::function<bool()>		EventFunc, EventFlag;
+		typedef				boost::function<bool()>		EventFlag;
+		typedef				boost::function<void()>		EventFunc;
 
 		///	<summary>
 		///		イベントの追加・削除・管理を行うクラス．
@@ -58,6 +59,11 @@ namespace Apocalypse
 			/// </param>
 			std::shared_ptr<EventHandle>
 							operator+=(std::shared_ptr<EventHandle> Handle);
+			/// <summary>
+			///		クラスの情報を文字列で取得する．
+			/// </summary>
+			virtual Value::String
+							ToString() const;
 			/// <summary>
 			///		デストラクタ．
 			/// </summary>
@@ -101,6 +107,11 @@ namespace Apocalypse
 			///		<para>また，EventTypeクラスの関数を引数に指定することもできます．</para>
 			/// </param>
 							EventHandle(EventFunc Func, EventFlag Ty);
+			/// <summary>
+			///		クラスの情報を文字列で取得する．
+			/// </summary>
+			virtual Value::String
+							ToString() const;
 		private:
 			/// <summary>
 			///		イベント関数．この関数内で各種処理を行う．
@@ -110,10 +121,6 @@ namespace Apocalypse
 			///		イベント判定関数．この関数内で各種判定を行う．
 			/// </summary>
 			EventFlag		_Type;
-			/// <summary>
-			///		イベントが繰り返し実行となっているかどうか．
-			/// </summary>
-			bool			_ContinueFlag;
 		};
 
 		///	<summary>
@@ -152,7 +159,7 @@ namespace Apocalypse
 			/// <param name = "Margin">
 			///		指定する領域の中心部分からの枠の大きさを指定します．
 			/// </param>
-			static EventFlag	MouseOnArea(Base::Point &Pt, int Margin);
+			static EventFlag	MouseOnArea(Value::Point &Pt, int Margin);
 			/// <summary>
 			///		マウスが指定した領域に存在する際にTRUEを返します．
 			/// </summary>
@@ -181,7 +188,7 @@ namespace Apocalypse
 			/// <param name = "MarginHeight">
 			///		指定する領域の中心部分からの枠の縦部分の大きさを指定します．
 			/// </param>
-			static EventFlag	MouseOnArea(Base::Point &Pt, int MarginWidth, int MarginHeight);
+			static EventFlag	MouseOnArea(Value::Point &Pt, int MarginWidth, int MarginHeight);
 			/// <summary>
 			///		マウスが指定したフレーム上に領域に存在する際にTRUEを返します．
 			/// </summary>

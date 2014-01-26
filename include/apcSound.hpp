@@ -31,7 +31,7 @@ namespace Apocalypse
 		///		Bgm->Play();	// 再生する
 		///		</code>
 		/// </example>
-		class SoundObject : virtual public Base::__ApcBase
+		class SoundObject : public Base::__ApcBase
 		{
 		public:
 			/// <summary>
@@ -43,7 +43,7 @@ namespace Apocalypse
 			/// <param name="FilePath">
 			///		再生する対象のファイル名．
 			///	</param>
-								SoundObject(Base::String FilePath);
+								SoundObject(Value::String FilePath);
 			/// <summary>
 			///		再生時の音量を指定する．
 			/// </summary>

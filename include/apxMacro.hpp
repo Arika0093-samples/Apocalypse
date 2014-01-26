@@ -14,8 +14,10 @@
 // --------------------------------------------------------
 //	define’è‹`
 // --------------------------------------------------------
+//	‰ŠúŠÖ”
+#define ApocalypseSetUp()		__ApcSystem::ApcSetUp() const
 //	shared_ptrŒ`®‚Å•Ô‚·new
-#define New(Type, ...)		std::shared_ptr<Type>(new Type(__VA_ARGS__))
+#define New(Type, ...)			std::shared_ptr<Type>(new Type(__VA_ARGS__))
 
 // ’è‹`‚±‚±‚Ü‚Å
 // --------------------------------------------------------
