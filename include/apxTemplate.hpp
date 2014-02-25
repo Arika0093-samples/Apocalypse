@@ -49,11 +49,11 @@ namespace Apocalypse
 			/// <summary>
 			///		コピーコンストラクタ
 			/// </summary>
-								__Singleton(const __Singleton& r){}
+								__Singleton(const __Singleton&){}
 			/// <summary>
 			///		代入演算子
 			/// </summary>
-			void*				operator=(const __Singleton& r){}
+			void*				operator=(const __Singleton&){}
 		};
 	}
 }

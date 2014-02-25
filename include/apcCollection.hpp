@@ -11,7 +11,6 @@
 // --------------------------------------------------------
 #include <vector>
 #include <list>
-#include <set>
 #include <boost/foreach.hpp>
 #include <include/apcClassBase.hpp>
 #include <include/apxTemplate.hpp>
@@ -102,6 +101,10 @@ namespace Apocalypse
 			/// </param>
 			FramePtr			Find(CheckFunc Func) const;
 			///	<summary>
+			///		コンテナ内のフレームをZオーダー順に並び替える．
+			///	</summary>
+			void				Sort();
+			///	<summary>
 			///		コンテナ内のフレームを全て削除する．
 			///	</summary>
 			void				Clear();
@@ -127,12 +130,12 @@ namespace Apocalypse
 				bool			operator()(const Draw::__FrameBase *A, const Draw::__FrameBase *B);
 			};
 			/// <summary>
-			///		親フレームのZ座標の合計値を取得する関数．
+			///		親フレームのZ座標の合計値を指定する関数．
 			/// </summary>
 			/// <param name = "Target">
-			///		Z座標を調べる対象のフレーム．
+			///		Z座標を指定する対象のフレーム．
 			/// </param>
-			unsigned int		_GetParentZindex(const Draw::__FrameBase *Target) const;
+			void				_SetZindex(Draw::__FrameBase *Target) const;
 			///	<summary>
 			///		親フレームに無効フレームがあるかどうかを調べる．
 			///	</summary>
@@ -147,7 +150,7 @@ namespace Apocalypse
 			///	<summary>
 			///		フレームを管理するためのコンテナ
 			///	</summary>
-			std::multiset<Draw::__FrameBase*, __FrameCollection::_Sort>
+			std::list<Draw::__FrameBase*>
 								_Container;
 		};
 
@@ -182,6 +185,10 @@ namespace Apocalypse
 			///		指定したシーケンスまでのすべてのシーケンスを削除する．
 			///	</summary>
 			void				Delete(const Sequence::Sequencer *Target);
+			///	<summary>
+			///		現在のシーケンスの個数を取得する
+			///	</summary>
+			unsigned int		Size() const;
 		private:
 			///	<summary>
 			///		コンストラクタ

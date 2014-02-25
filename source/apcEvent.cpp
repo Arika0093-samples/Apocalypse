@@ -32,7 +32,17 @@ void			__EventHandleList::_ArrayCheck() const
 // ----------------------------------------------------
 //	EventHandleList::operator +=
 // ----------------------------------------------------
-std::shared_ptr<EventHandle>
+EventHandle*	__EventHandleList::operator+=(EventHandle* Handle)
+{
+	// 引数で渡されたハンドルを追加する
+	_EventItems.push_back(std::shared_ptr<EventHandle>(Handle));
+	return Handle;
+}
+
+// ----------------------------------------------------
+//	EventHandleList::operator +=
+// ----------------------------------------------------
+std::shared_ptr<EventHandle>	
 				__EventHandleList::operator+=(std::shared_ptr<EventHandle> Handle)
 {
 	// 引数で渡されたハンドルを追加する
@@ -63,17 +73,6 @@ String			__EventHandleList::ToString() const
 // ----------------------------------------------------
 //	EventHandle::EventHandleList (Constructor)
 // ----------------------------------------------------
-				EventHandle::EventHandle(EventFunc Func)
-{
-	// 関数を指定
-	_Function		= Func;
-	_Type			= EventType::Process();
-	// 繰り返しフラグをfalseに指定する
-}
-
-// ----------------------------------------------------
-//	EventHandle::EventHandleList (Constructor)
-// ----------------------------------------------------
 				EventHandle::EventHandle(EventFunc Func, EventFlag Ty)
 {
 	// 関数を指定
@@ -88,7 +87,7 @@ String			EventHandle::ToString() const
 {
 	// 情報を返却する
 	return String() << _T("Function: ") << !_Function.empty()
-		<< _T(", Flag: ") << _Type.empty();
+		<< _T(", Flag: ") << !_Type.empty();
 }
 
 // ----------------------------------------------------
@@ -99,6 +98,38 @@ String			EventHandle::ToString() const
 EventFlag		EventType::Process()
 {
 	return [](){ return true; };
+}
+
+// ----------------------------------------------------
+//	EventType::And
+// ----------------------------------------------------
+EventFlag		EventType::And(const EventFlag &A, const EventFlag &B)
+{
+	return [=](){ return A() && B(); };
+}
+
+// ----------------------------------------------------
+//	EventType::Or
+// ----------------------------------------------------
+EventFlag		EventType::Or(const EventFlag &A, const EventFlag &B)
+{
+	return [=](){ return A() || B(); };
+}
+
+// ----------------------------------------------------
+//	EventType::Nor
+// ----------------------------------------------------
+EventFlag		EventType::Nor(const EventFlag &A, const EventFlag &B)
+{
+	return [=](){ return !A() || !B(); };
+}
+
+// ----------------------------------------------------
+//	EventType::Not
+// ----------------------------------------------------
+EventFlag		EventType::Not(const EventFlag &A, const EventFlag &B)
+{
+	return [=](){ return !A() && !B(); };
 }
 
 // ----------------------------------------------------
@@ -219,7 +250,7 @@ EventFlag		EventType::MouseRUp()
 // ----------------------------------------------------
 //	EventType::KeyBoardPush
 // ----------------------------------------------------
-EventFlag		EventType::KeyBoardPush(Keys CheckKey)
+EventFlag		EventType::KeyBoardPush(const __KeysData &CheckKey)
 {
 	return [=](){ return KeyBoard::PushStart(CheckKey);};
 }
@@ -227,7 +258,7 @@ EventFlag		EventType::KeyBoardPush(Keys CheckKey)
 // ----------------------------------------------------
 //	EventType::KeyBoardDown
 // ----------------------------------------------------
-EventFlag		EventType::KeyBoardDown(Keys CheckKey)
+EventFlag		EventType::KeyBoardDown(const __KeysData &CheckKey)
 {
 	return [=](){ return (KeyBoard::Pushing(CheckKey) >= 1);};
 }
@@ -235,7 +266,7 @@ EventFlag		EventType::KeyBoardDown(Keys CheckKey)
 // ----------------------------------------------------
 //	EventType::KeyBoardUp
 // ----------------------------------------------------
-EventFlag		EventType::KeyBoardUp(Keys CheckKey)
+EventFlag		EventType::KeyBoardUp(const __KeysData &CheckKey)
 {
 	return [=](){ return KeyBoard::OutStart(CheckKey);};
 }

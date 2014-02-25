@@ -30,6 +30,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	while(ApcSys.ApcProcess()){
 		// イベント処理を行う
 		__SequenceCollection::GetInstance().Top()->Events._ArrayCheck();
+		// フレーム描画順を入れ替える．
+		__FrameCollection::GetInstance().Sort();
 		// フレームをまとめて描画．
 		__FrameCollection::GetInstance().DrawAll();
 	}

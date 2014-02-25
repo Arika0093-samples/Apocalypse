@@ -57,6 +57,13 @@ namespace Apocalypse
 			/// <param name = "Handle">
 			///		追加する対象のイベント．
 			/// </param>
+			EventHandle*	operator+=(EventHandle* Handle);
+			/// <summary>
+			///		イベントハンドルを末尾に追加する．
+			/// </summary>
+			/// <param name = "Handle">
+			///		追加する対象のイベント．
+			/// </param>
 			std::shared_ptr<EventHandle>
 							operator+=(std::shared_ptr<EventHandle> Handle);
 			/// <summary>
@@ -81,22 +88,14 @@ namespace Apocalypse
 		};
 
 		///	<summary>
-		///		イベントの基板クラス．このイベント自体は生成できない．
+		///		イベントを管理する基本のハンドルクラス
 		///	</summary>
 		class EventHandle : public Base::__ApcBase
 		{
 			friend class	__EventHandleList;
 		public:
 			/// <summary>
-			///		<para>EventTypeを指定しない版コンストラクタ．</para>
-			///		<para>このコンストラクタでは毎フレーム関数が実行されます(EventList::Process()と同じ)．</para>
-			/// </summary>
-			/// <param name = "Func">
-			///		実行する関数．クラスメンバの関数の場合はboost::bind関数を使用する必要があります．
-			/// </param>
-							EventHandle(EventFunc Func);
-			/// <summary>
-			///		EventTypeを指定する版コンストラクタ．
+			///		コンストラクタ．
 			/// </summary>
 			/// <param name = "Func">
 			///		実行する関数．クラスメンバの関数の場合はboost::bind関数を使用する必要があります．
@@ -133,6 +132,22 @@ namespace Apocalypse
 			///		常にTRUEを返します．
 			/// </summary>
 			static EventFlag	Process();
+			/// <summary>
+			///		2つの項目を比較して，両方がTRUEを返したならTRUEを返します．
+			/// </summary>
+			static EventFlag	And(const EventFlag &A, const EventFlag &B);
+			/// <summary>
+			///		2つの項目を比較して，片方がTRUEを返したならTRUEを返します．
+			/// </summary>
+			static EventFlag	Or(const EventFlag &A, const EventFlag &B);
+			/// <summary>
+			///		2つの項目を比較して，両方がFALSEを返したならTRUEを返します．
+			/// </summary>
+			static EventFlag	Nor(const EventFlag &A, const EventFlag &B);
+			/// <summary>
+			///		2つの項目を比較して，片方がFALSEを返したならTRUEを返します．
+			/// </summary>
+			static EventFlag	Not(const EventFlag &A, const EventFlag &B);
 			/// <summary>
 			///		マウスが動いた際にTRUEを返します．
 			/// </summary>
@@ -226,21 +241,21 @@ namespace Apocalypse
 			/// <param name = "CheckKey">
 			///		確認するキーを指定します．
 			/// </param>
-			static EventFlag	KeyBoardPush(Input::Keys CheckKey);
+			static EventFlag	KeyBoardPush(const Input::__KeysData &CheckKey);
 			/// <summary>
 			///		引数に指定したキーが押された瞬間のみTRUEを返します．
 			/// </summary>
 			/// <param name = "CheckKey">
 			///		確認するキーを指定します．
 			/// </param>
-			static EventFlag	KeyBoardDown(Input::Keys CheckKey);
+			static EventFlag	KeyBoardDown(const Input::__KeysData &CheckKey);
 			/// <summary>
 			///		引数に指定したキーが離された瞬間のみTRUEを返します．
 			/// </summary>
 			/// <param name = "CheckKey">
 			///		確認するキーを指定します．
 			/// </param>
-			static EventFlag	KeyBoardUp(Input::Keys CheckKey);
+			static EventFlag	KeyBoardUp(const Input::__KeysData &CheckKey);
 			/// <summary>
 			///		キーかマウスが押された場合にTRUEを返します．
 			/// </summary>

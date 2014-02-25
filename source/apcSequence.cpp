@@ -8,12 +8,23 @@
 // --------------------------------------------------------
 //	Sequencer
 // --------------------------------------------------------
+//	Sequencer::Sequencer(Constructer)
+// --------------------------------------------------------
+				Sequencer::Sequencer()
+{
+	// DrawOrderを0に初期化
+	_DrawOrder = 0;
+}
+
+// --------------------------------------------------------
 //	Sequencer::Move
 // --------------------------------------------------------
 void			Sequencer::Move(std::shared_ptr<Sequencer> To)
 {
 	// シーケンス管理クラスの削除関数を呼ぶ
 	__SequenceCollection::GetInstance().Delete(this);
+	// 描画順を指定する
+	To->_DrawOrder = __SequenceCollection::GetInstance().Size();
 	// 渡された値をシーケンスに追加する
 	Add(To);
 }
@@ -31,6 +42,8 @@ void			Sequencer::Move(Sequencer *To)
 // --------------------------------------------------------
 void			Sequencer::Add(std::shared_ptr<Sequencer> To)
 {
+	// 描画順を指定する
+	To->_DrawOrder = __SequenceCollection::GetInstance().Size();
 	// シーケンス管理クラスの追加関数を呼ぶ
 	__SequenceCollection::GetInstance().Add(To);
 }

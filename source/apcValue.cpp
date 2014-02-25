@@ -14,9 +14,20 @@
 {
 	// 初期値を指定する
 	_Val				= 0;
-	Add					= 1.0;
+	Add					= 0.0;
 	Cycle				= 0;
-	LoopType			= _LoopType::Repeat;
+	Enable				= true;
+	LoopType			= _LoopType::No;
+	_IsReturned			= false;
+	_LastCalledFrame	= __FrameCounter::GetCount();
+}
+
+// ----------------------------------------------------
+//	Timer::Reset
+// ----------------------------------------------------
+void			Timer::Reset()
+{
+	_Val				= 0;
 	_IsReturned			= false;
 	_LastCalledFrame	= __FrameCounter::GetCount();
 }
@@ -37,7 +48,7 @@ String			Timer::ToString() const
 double			Timer::operator()()
 {
 	// 値を更新する
-	_TimerReload(__FrameCounter::GetCount() - _LastCalledFrame);
+	_TimerReload((int)(__FrameCounter::GetCount() - _LastCalledFrame));
 	// FC値を更新する
 	_LastCalledFrame = __FrameCounter::GetCount();
 	// 値を返却する
@@ -63,7 +74,7 @@ void			Timer::_TimerReload(int CallTimes)
 		CallTimes %= Cycle * 2;
 	}
 	// 繰り返す回数分読み込む
-	while(CallTimes > 0){
+	while(CallTimes > 0 && Enable){
 		// 繰り返し処理関連の関数を呼び出し，次の処理に進むような戻り値だったら
 		if(!_RepeatFunc()){
 			// 値を追加する
@@ -223,21 +234,21 @@ int				String::Message(unsigned int Style) const
 // ----------------------------------------------------
 //	String::Connect
 // ----------------------------------------------------
-void			String::Connect(const std::vector<String> &Array)
+String&			String::Connect(const std::vector<String> &Array)
 {
 	// 詳細バージョンに投げる
-	Connect(Array, _T(""));
+	return Connect(Array, _T(""));
 }
 
 // ----------------------------------------------------
 //	String::Connect
 // ----------------------------------------------------
-void			String::Connect(const std::vector<String> &Array, const String& Cs)
+String&			String::Connect(const std::vector<String> &Array, const String& Cs)
 {
-	// 初期化
-	clear();
-	// joinを使用して結合する 
-	append(boost::join(Array, Cs));
+	// joinを使用して結合する
+	auto StrPtr = new String(boost::join(Array, Cs));
+	// 返却
+	return *StrPtr;
 }
 
 // ----------------------------------------------------
@@ -250,7 +261,7 @@ String&			String::Replace(const String &From, const String &To) const
 	// Fromが無くなるまで
 	for(tstring::size_type Pos = 0; (Pos = Result->find(From, Pos)) != tstring::npos;){
 		// FromをToに置き換える
-		Result->replace(Pos, To.length(), To.c_str());
+		Result->replace(Pos, From.length(), To.c_str());
 		// Posを置き換えた文字列分進める
 		Pos += To.length();
 	}
@@ -264,13 +275,26 @@ String&			String::Replace(const String &From, const String &To) const
 std::vector<String>
 				String::Split(const String &Sp) const
 {
+	// 詳細版に投げる
+	return Split(Sp, true);
+}
+
+// ----------------------------------------------------
+//	String::Split
+// ----------------------------------------------------
+std::vector<String>
+				String::Split(const String &Sp, bool IsSpaceAble) const
+{
 	// 一時的に使用
-	tstring Str(this->c_str());
+	tstring Str;
 	// 返却する配列を作成
 	auto ArgT = std::vector<tstring>();
 	auto ArgS = std::vector<String>();
+	// 対象の文字をreplaceする
+	Str = Replace(Sp, _T("\x01"));
 	// boostのsplitを使用する
-	boost::split(ArgT, Str, boost::is_any_of(Sp.c_str()));
+	boost::split(ArgT, Str, boost::is_any_of(_T("\x01")),
+		IsSpaceAble ? boost::token_compress_on : boost::token_compress_off);
 	// コピー
 	for(auto Iter = ArgT.begin(); Iter != ArgT.end(); Iter++)
 		ArgS.push_back(Iter->c_str());
@@ -422,24 +446,6 @@ String&			String::operator<<(const Point& Val)
 {
 	// 追加して返却
 	return this->FromValue<String>(String() << Val.X << _T(", ") << Val.Y);
-}
-
-// ----------------------------------------------------
-//	String::operator == (String)
-// ----------------------------------------------------
-bool			String::operator==(const String& Val) const
-{
-	// 比較する
-	return compare(Val);
-}
-
-// ----------------------------------------------------
-//	String::operator != (String)
-// ----------------------------------------------------
-bool			String::operator!=(const String& Val) const
-{
-	// 比較する
-	return !compare(Val);
 }
 
 // ----------------------------------------------------

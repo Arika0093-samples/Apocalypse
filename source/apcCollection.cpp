@@ -41,7 +41,7 @@ void			__FrameCollection::Insert(__FrameBase *Target)
 		return;
 	}
 	// 挿入する
-	_Container.insert(Target);
+	_Container.push_back(Target);
 }
 
 // ----------------------------------------------------
@@ -77,7 +77,7 @@ __FrameCollection::FrameListPtr
 			continue;
 		}
 		// もし親フレームが指定されていなければ
-		if(Ptr->Parent && Ptr != _TopParent){
+		if(!Ptr->Parent && Ptr != _TopParent){
 			// 親フレームをTopParentに指定する
 			Ptr->Parent = _TopParent;
 		}
@@ -140,6 +140,20 @@ __FrameCollection::FramePtr
 }
 
 // ----------------------------------------------------
+//	FrameCollection::Sort
+// ----------------------------------------------------
+void			__FrameCollection::Sort()
+{
+	// 全フレームに対して，DrawOrderを適切なものに変更する
+	for(auto Iter = _Container.begin(); Iter != _Container.end(); Iter++){
+		// 親を考慮して並び替える
+		__FrameCollection::GetInstance()._SetZindex(*Iter);
+	}
+	// 並び順を変える
+	_Container.sort(_Sort());
+}
+
+// ----------------------------------------------------
 //	FrameCollection::Clear
 // ----------------------------------------------------
 void			__FrameCollection::Clear()
@@ -153,9 +167,8 @@ void			__FrameCollection::Clear()
 // ----------------------------------------------------
 bool			__FrameCollection::_Sort::operator()(const __FrameBase *A, const __FrameBase *B)
 {
-	// Z座標を比較する．この際Z座標が0なら標準値を使用する
-	return	(A->DrawOrder != 0 ? A->DrawOrder : __FrameCollection::GetInstance()._GetParentZindex(A))
-		>	(B->DrawOrder != 0 ? B->DrawOrder : __FrameCollection::GetInstance()._GetParentZindex(B));
+	// Z座標を比較する．
+	return	A->DrawOrder < B->DrawOrder;
 }
 
 // ----------------------------------------------------
@@ -168,7 +181,7 @@ void			__FrameCollection::DrawAll() const
 	// 列挙する
 	BOOST_FOREACH(auto Ptr, *List){
 		// 横幅・縦幅の標準値を取得
-		Ptr->_SetProperties();
+  		Ptr->_SetProperties();
 		// 位置をリセットする
 		Ptr->_SetDefaultPosition();
 		// 描画モードを指定する
@@ -187,17 +200,29 @@ EdgeFrame*		__FrameCollection::GetTopParent() const
 }
 
 // ----------------------------------------------------
-//	FrameBase::GetParentZindex
+//	FrameBase::SetZindex
 // ----------------------------------------------------
-unsigned int	__FrameCollection::_GetParentZindex(const __FrameBase *Tgt) const
+void			__FrameCollection::_SetZindex(__FrameBase *Tgt) const
 {
-	// もし無効なら
-	if(!Tgt){
-		// 1を返す
-		return 1.00;
+	// 加算値（仮置き）
+	const int FRAME_IN_SEQUENCER_MAX = 0xFF;
+	// もしDrawOrderが指定済みならば
+	if(Tgt->DrawOrder != 0){
+		// 何もしない
+		return;
 	}
-	// 自身の親フレームのZ座標+自身のZ座標を返却
-	return (Tgt->DrawOrder + _GetParentZindex(Tgt->Parent));
+	// もし親が有効なら
+	if(Tgt->Parent){
+		// 親に同様の操作を行う
+		_SetZindex(Tgt->Parent);
+	}
+	// もし自身の親がTopParentなら
+	if(Tgt->Parent == _TopParent){
+		// SequencerのDrawOrderを最初に加味する
+		Tgt->DrawOrder = __SequenceCollection::GetInstance().Top()->_DrawOrder * FRAME_IN_SEQUENCER_MAX;
+	}
+	// 自身の親フレームのZ座標を足して返却
+	Tgt->DrawOrder += (Tgt->Parent ? Tgt->Parent->DrawOrder : 0) + 1;
 }
 
 // ----------------------------------------------------
@@ -276,6 +301,15 @@ void			__SequenceCollection::Delete(const Sequencer *Target)
 			break;
 		}
 	};
+}
+
+// ----------------------------------------------------
+//	SequenceCollection::Size
+// ----------------------------------------------------
+unsigned int	__SequenceCollection::Size() const
+{
+	// 個数を返却
+	return _Container.size();
 }
 
 // ----------------------------------------------------

@@ -76,9 +76,17 @@ namespace Apocalypse
 			///	</summary>
 			int					Cycle;
 			///	<summary>
-			///		折り返す種類．
+			///		自身が有効なTimerかどうか．falseに指定すると値の自動増加を停止する．
+			///	</summary>
+			bool				Enable;
+			///	<summary>
+			///		折り返す種類．標準ではNo(折り返さない)．
 			///	</summary>
 			_LoopType			LoopType;
+			/// <summary>
+			///		Timerの値を初期化する．
+			/// </summary>
+			void				Reset();
 			/// <summary>
 			///		クラスの情報を文字列で取得する．
 			/// </summary>
@@ -168,18 +176,6 @@ namespace Apocalypse
 		///		<para>stringstreamのように使用することが可能になっています．</para>
 		///		<para>その他，便利そうな機能を追加しています．</para>
 		/// </remarks>
-		/// <example>
-		///		使用例: 
-		///		<code>
-		///		// String()クラスに数字の4.12を流してMessageBoxで出力
-		///		String str;
-		///		str << 4.12;
-		///		MessageBox(NULL, str, _T(""), ID_OK);
-		///		// Stringクラスが先頭に来ない場面または引数上で<<を使用する場合はString()を使用する．
-		///		str = String() << _T("1+1=: ") << (1+1);
-		///		MessageBox(NULL, (String() << _T("Value: ") << 6.132), _T(""), ID_OK);
-		///		</code>
-		/// </example>
 		class String : public Base::__ApcBase, public std::basic_string<TCHAR>
 		{
 			///	<summary>
@@ -215,7 +211,7 @@ namespace Apocalypse
 			/// <param name = "Array">
 			///		繋げる対象の配列．
 			/// </param>
-			void				Connect(const std::vector<String> &Array);
+			static String&		Connect(const std::vector<String> &Array);
 			///	<summary>
 			///		自身を，引数の文字列の配列を特定文字で繋げたものに置き換える．
 			///	</summary>
@@ -225,7 +221,7 @@ namespace Apocalypse
 			/// <param name = "Cs">
 			///		文字と文字を繋げる文字列．
 			/// </param>
-			void				Connect(const std::vector<String> &Array, const String &Cs);
+			static String&		Connect(const std::vector<String> &Array, const String &Cs);
 			///	<summary>
 			///		文字列の特定部分を引数で置き換えたものを返却する．
 			///	</summary>
@@ -243,6 +239,16 @@ namespace Apocalypse
 			///		区切る文字列を列挙する．
 			/// </param>
 			std::vector<String> Split(const String &Sp) const;			
+			///	<summary>
+			///		文字列を特定部分で区切って配列に格納したものを返却する．
+			///	</summary>
+			/// <param name = "Sp">
+			///		区切る文字列を列挙する．
+			/// </param>
+			/// <param name = "IsSpaceAble">
+			///		空白の配列を返却するかどうかを指定する．
+			/// </param>
+			std::vector<String> Split(const String &Sp, bool IsSpaceAble) const;			
 			///	<summary>
 			///		operator LPCTSTR.
 			///	</summary>
@@ -307,14 +313,6 @@ namespace Apocalypse
 			///		文字列にPointを流す．
 			///	</summary>
 			String&				operator<<(const Point& Val);
-			///	<summary>
-			///		文字列を比較する．
-			///	</summary>
-			bool				operator==(const String& Val) const;
-			///	<summary>
-			///		文字列を比較する(NOT版)．
-			///	</summary>
-			bool				operator!=(const String& Val) const;
 			template<typename Type>
 			///	<summary>
 			///		文字列を指定した型に変換する．

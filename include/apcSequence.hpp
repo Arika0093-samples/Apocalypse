@@ -47,6 +47,10 @@ namespace Apocalypse
 			Event::__EventHandleList
 								Events;
 			///	<summary>
+			///		Sequencerの描画順．高いほど後に描画される．
+			///	</summary>
+			unsigned int		_DrawOrder;
+			///	<summary>
 			///		別のシーケンスに制御を移動させる用の関数．
 			///	</summary>
 			/// <remarks>
@@ -137,7 +141,7 @@ namespace Apocalypse
 			///	<summary>
 			///		コンストラクタ．このクラス自身は呼び出せない．
 			///	</summary>
-								Sequencer(){}
+								Sequencer();
 		};
 	}
 }
