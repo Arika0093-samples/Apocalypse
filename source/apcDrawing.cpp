@@ -706,15 +706,10 @@ inline int		Font::_GetFontDrawType() const
 // ----------------------------------------------------
 				Color::Color(int Rp, int Gp, int Bp)
 {
-	// 値を指定する
-	this->R	= Rp;
-	this->G	= Gp;
-	this->B	= Bp;
-	this->A	= 255;
-	// 有効に設定
-	Enable = true;
+	// 詳細版を呼び出す
+	this->Color::Color(255, Rp, Gp, Bp);
 }
-
+				
 // ----------------------------------------------------
 //	Color::Color
 // ----------------------------------------------------
