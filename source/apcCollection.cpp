@@ -168,7 +168,7 @@ void			__FrameCollection::Clear()
 bool			__FrameCollection::_Sort::operator()(const __FrameBase *A, const __FrameBase *B)
 {
 	// ZÀ•W‚ð”äŠr‚·‚éD
-	return	A->DrawOrder < B->DrawOrder;
+	return A->DrawOrder < B->DrawOrder;
 }
 
 // ----------------------------------------------------
@@ -186,6 +186,11 @@ void			__FrameCollection::DrawAll() const
 		Ptr->_SetDefaultPosition();
 		// •`‰æƒ‚[ƒh‚ðŽw’è‚·‚é
 		SetDrawMode(Ptr->DrawMode);
+		// ˜g“à—Ìˆæ‚É•`‰æ‚·‚éÝ’è‚È‚ç—LŒø‚É‚·‚é
+		if(Ptr->DrawFramework){
+			SetDrawArea(Ptr->_Location.X, Ptr->_Location.Y,
+				Ptr->_Location.X + Ptr->_Width, Ptr->_Location.Y + Ptr->_Height);
+		}
 		// Žæ“¾‚µ‚½ƒtƒŒ[ƒ€‚Ì•`‰æŠÖ”‚ðŽÀs‚·‚é
 		Ptr->_DrawThisFrame();
 	}

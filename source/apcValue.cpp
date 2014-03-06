@@ -214,21 +214,12 @@ void			String::DebugOutput() const
 }
 
 // ----------------------------------------------------
-//	String::Message
+//	String::LogOutput
 // ----------------------------------------------------
-void			String::Message() const
+void			String::LogOutput() const
 {
-	// 表示
-	MessageBox(GetMainWindowHandle(), c_str(), _T("Message"), MB_OK | MB_ICONINFORMATION);
-}
-
-// ----------------------------------------------------
-//	String::Message
-// ----------------------------------------------------
-int				String::Message(unsigned int Style) const
-{
-	// 表示
-	return MessageBox(GetMainWindowHandle(), c_str(), _T("Information"), Style);
+	// ログファイルに出力
+	ErrorLogAdd((*this + _T("\n")).c_str());
 }
 
 // ----------------------------------------------------
@@ -272,7 +263,7 @@ String&			String::Replace(const String &From, const String &To) const
 // ----------------------------------------------------
 //	String::Split
 // ----------------------------------------------------
-std::vector<String>
+std::vector<String>&
 				String::Split(const String &Sp) const
 {
 	// 詳細版に投げる
@@ -282,24 +273,24 @@ std::vector<String>
 // ----------------------------------------------------
 //	String::Split
 // ----------------------------------------------------
-std::vector<String>
+std::vector<String>&
 				String::Split(const String &Sp, bool IsSpaceAble) const
 {
 	// 一時的に使用
 	tstring Str;
 	// 返却する配列を作成
 	auto ArgT = std::vector<tstring>();
-	auto ArgS = std::vector<String>();
+	auto ArgS = new std::vector<String>();
 	// 対象の文字をreplaceする
 	Str = Replace(Sp, _T("\x01"));
 	// boostのsplitを使用する
 	boost::split(ArgT, Str, boost::is_any_of(_T("\x01")),
-		IsSpaceAble ? boost::token_compress_on : boost::token_compress_off);
+		IsSpaceAble ? boost::token_compress_off : boost::token_compress_on);
 	// コピー
 	for(auto Iter = ArgT.begin(); Iter != ArgT.end(); Iter++)
-		ArgS.push_back(Iter->c_str());
+		ArgS->push_back(Iter->c_str());
 	// 返却
-	return ArgS;
+	return *ArgS;
 }
 
 // ----------------------------------------------------

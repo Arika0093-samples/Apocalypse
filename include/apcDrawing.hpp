@@ -10,6 +10,7 @@
 //	必要なヘッダーを読み込む
 // --------------------------------------------------------
 #include <Windows.h>
+#include <vector>
 #include <dxlib/DxLib.h>
 #include <include/apcClassBase.hpp>
 #include <include/apcCollection.hpp>
@@ -33,9 +34,9 @@ namespace Apocalypse
 		{
 		public:
 			///	<summary>
-			///		フレームの位置を示す定数を収納した列挙型．
+			///		位置を示す定数を収納した列挙型．
 			///	</summary>
-			enum				_FramePosition
+			enum				_Position
 			{
 				///	<summary>
 				///		左上を示す．
@@ -140,7 +141,7 @@ namespace Apocalypse
 			///	<summary>
 			///		色リストデータの列挙体
 			///	</summary>
-			enum			_ColorList
+			enum					_ColorList
 			{
 				/// <summary>
 				/// AliceBlue(#F0F8FF)の色を取得します．
@@ -710,7 +711,7 @@ namespace Apocalypse
 			/// <summary>
 			///		空の色データを作成する（引数に何も指定しない）．
 			/// </summary>
-							Color();
+									Color();
 			/// <summary>
 			///		色データを作成する（DxライブラリのGetColorと同じ）
 			/// </summary>
@@ -723,7 +724,7 @@ namespace Apocalypse
 			/// <param name = "B">
 			///		青の強度．0から255までの範囲で指定する．
 			/// </param>
-							Color(int Rp, int Gp, int Bp);
+									Color(int Rp, int Gp, int Bp);
 			/// <summary>
 			///		色データを作成する
 			/// </summary>
@@ -739,7 +740,7 @@ namespace Apocalypse
 			/// <param name = "B">
 			///		青の強度．0から255までの範囲で指定する．
 			/// </param>
-							Color(int Ap, int Rp, int Gp, int Bp);
+									Color(int Ap, int Rp, int Gp, int Bp);
 			/// <summary>
 			///		色データを作成する（HTML等の色コード版）
 			/// </summary>
@@ -747,7 +748,7 @@ namespace Apocalypse
 			///		透明度情報を含むRGBコード．<see cref="_ColorList">ColorList</see>内で
 			///		定義された値を使用することも可能です．
 			/// </param>
-							Color(_ColorList ARGBCode);
+									Color(_ColorList ARGBCode);
 			/// <summary>
 			///		色データを作成する（αブレンドを自分で指定する）
 			/// </summary>
@@ -758,67 +759,66 @@ namespace Apocalypse
 			/// <param name = "Alpha">
 			///		この色のαブレンド．
 			/// </param>
-							Color(_ColorList RGBCode, int Alpha);
+									Color(_ColorList RGBCode, int Alpha);
 			/// <summary>
 			///		色データを代入する
 			/// </summary>
-			Color&			operator=(const Color &Cr);
+			Color&					operator=(const Color &Cr);
 			/// <summary>
 			///		色データを代入する
 			/// </summary>
-			Color&			operator=(const _ColorList ARGBCode);
+			Color&					operator=(const _ColorList ARGBCode);
 			/// <summary>
 			///		色データを比較する
 			/// </summary>
-			bool			operator==(const Color &Cr) const;
+			bool					operator==(const Color &Cr) const;
 			/// <summary>
 			///		色データをNOT比較する
 			/// </summary>
-			bool			operator!=(const Color &Cr) const;
+			bool					operator!=(const Color &Cr) const;
 			/// <summary>
 			///		色データを比較する関数．
 			/// </summary>
 			/// <param name = "Target">
 			///		比較する対象の色クラス．
 			/// </param>
-			bool			Compare(const Color &Target) const;
+			bool					Compare(const Color &Target) const;
 			/// <summary>
 			///		%で渡されたAlphaを256段階に変換して返却する．
 			/// </summary>
-			static int		AlphaFromParcent(double Bs);
+			static int				AlphaFromParcent(double Bs);
 			/// <summary>
 			///		フレームの状態を文字列で返却する．
 			/// </summary>
-			virtual Value::String
-							ToString() const;
+			virtual Value::String	ToString() const;
 			///	<summary>
 			///		有効な色かどうか．
 			///	</summary>
-			bool			Enable;
+			bool					Enable;
 			///	<summary>
 			///		色の透明度の強度．
 			///	</summary>
-			int				A;
+			int						A;
 			///	<summary>
 			///		色の赤成分の強度．
 			///	</summary>
-			int				R;
+			int						R;
 			///	<summary>
 			///		色の緑成分の強度．
 			///	</summary>
-			int				G;
+			int						G;
 			///	<summary>
 			///		色の青成分の強度．
 			///	</summary>
-			int				B;
+			int						B;
 			/// <summary>
 			///		クラスに登録されている色データを返却する
 			/// </summary>
-			inline DWORD	_GetColor() const;
+			inline DWORD			_GetColor() const;
 			/// <summary>
 			///		クラスに登録されている透明度を適用する
 			/// </summary>
-			inline void		_AppendAlpha() const;
+			inline void				_AppendAlpha() const;
 			/// <summary>
 			///		自身と対象の色を一定割合でブレンドした結果のColorのポインタを返却する．
 			/// </summary>
@@ -828,8 +828,7 @@ namespace Apocalypse
 			/// <param name = "Parcent">
 			///		ブレンドする割合．
 			/// </param>
-			std::shared_ptr<Color>
-							_GetColorBlends(const Color &Target, int Parcent) const;
+			std::shared_ptr<Color>	_GetColorBlends(const Color &Target, int Parcent) const;
 		};
 
 		///	<summary>
@@ -845,7 +844,7 @@ namespace Apocalypse
 			///	<summary>
 			///		フォントの描画方法を指定する．
 			///	</summary>
-			class			FontType
+			class					FontType : public Base::__ApcEnumeration
 			{
 			public:
 				enum		_FontType
@@ -867,107 +866,104 @@ namespace Apocalypse
 			///	<summary>
 			///		コンストラクタ(無指定版)
 			///	</summary>
-							Font();
+									Font();
 			///	<summary>
 			///		コンストラクタ(サイズ指定版)
 			///	</summary>
-							Font(int FontSize);
+									Font(int FontSize);
 			///	<summary>
 			///		コンストラクタ(名前/サイズ指定版)
 			///	</summary>
-							Font(Value::String FontName, int FontSize);
+									Font(Value::String FontName, int FontSize);
 			///	<summary>
 			///		コンストラクタ(名前/サイズ/太さ指定版)
 			///	</summary>
-							Font(Value::String FontName, int FontSize, int FontThick);
+									Font(Value::String FontName, int FontSize, int FontThick);
 			///	<summary>
 			///		コンストラクタ(名前/サイズ/太さ/縁サイズ指定版)
 			///	</summary>
-							Font(Value::String FontName, int FontSize, int FontThick, int eSize);
+									Font(Value::String FontName, int FontSize, int FontThick, int eSize);
 			///	<summary>
 			///		コンストラクタ(全部指定版)
 			///	</summary>
-							Font(Value::String FontName, int FontSize, int FontThick, int eSize, FontType::_FontType Type);
+									Font(Value::String FontName, int FontSize, int FontThick, int eSize, FontType::_FontType Type);
 			///	<summary>
 			///		デストラクタ
 			///	</summary>
-			virtual			~Font();
+			virtual					~Font();
 			///	<summary>
 			///		フォント名．
 			///	</summary>
-			Value::String	Name;
+			Value::String			Name;
 			///	<summary>
 			///		フォントサイズ．
 			///	</summary>
-			int				Size;
+			int						Size;
 			///	<summary>
 			///		フォントの太さ．
 			///	</summary>
-			int				Thick;
+			int						Thick;
 			///	<summary>
 			///		描画方法の種類．FontTypeから選択する．
 			///	</summary>
-			FontType::_FontType
-							Type;
+			FontType::_FontType		Type;
 			///	<summary>
 			///		フォントの縁の太さ．
 			///	</summary>
-			int				EdgeSize;
+			int						EdgeSize;
 			///	<summary>
 			///		フォントの色．
 			///	</summary>
-			Color			FontColor;
+			Color					FontColor;
 			///	<summary>
-			///		描画する文字の縁の色．Color::Transparentを指定すると縁を描画しません．
+			///		描画する文字の縁の色．Enableをfalseにすると縁を描画しません．
 			///	</summary>
-			Color			EdgeColor;
+			Color					EdgeColor;
 			/// <summary>
 			///		フレームの状態を文字列で返却する．
 			/// </summary>
-			virtual Value::String
-							ToString() const;
+			virtual Value::String	ToString() const;
 			///	<summary>
 			///		フォントハンドルを更新するかどうか確認し，更新する必要があれば更新する．
 			///	</summary>
-			void			_ReloadFontHandle();
+			void					_ReloadFontHandle();
 			///	<summary>
 			///		フォントハンドルを取得する．
 			///	</summary>
-			int				_GetFontHandle() const;
+			int						_GetFontHandle() const;
 			///	<summary>
 			///		描画種類を取得する．
 			///	</summary>
-			int				_GetFontDrawType() const;
+			int						_GetFontDrawType() const;
 		private:
 			///	<summary>
 			///		フォント名（内部保存用）．
 			///	</summary>
-			Value::String	_Name;
+			Value::String			_Name;
 			///	<summary>
 			///		フォントサイズ（内部保存用）．
 			///	</summary>
-			int				_Size;
+			int						_Size;
 			///	<summary>
 			///		フォントの太さ（内部保存用）．
 			///	</summary>
-			int				_Thick;
+			int						_Thick;
 			///	<summary>
 			///		フォントの縁の太さ（内部保存用）．
 			///	</summary>
-			int				_Edge;
+			int						_Edge;
 			///	<summary>
 			///		フォントの種類（内部保存用）．
 			///	</summary>
-			FontType::_FontType
-							_Type;
+			FontType::_FontType		_Type;
 			///	<summary>
 			///		フォントの縁が有効かどうか．
 			///	</summary>
-			bool			_IsEnableEdge;
+			bool					_IsEnableEdge;
 			///	<summary>
 			///		フォントハンドル
 			///	</summary>
-			int				_Handle;
+			int						_Handle;
 		};
 	
 		///	<summary>
@@ -983,17 +979,17 @@ namespace Apocalypse
 			/// <summary>
 			///		FrameCollectionクラスからは全てのメンバにアクセス可能です．
 			/// </summary>
-			friend class		Collection::__FrameCollection;
+			friend class			Collection::__FrameCollection;
 			/// <summary>
 			///		typedef
 			/// </summary>
-			typedef				FramePosition::_FramePosition	FPosition;
-			typedef				FrameDrawMode::_FrameDrawMode	FDrawMode;
+			typedef					FramePosition::_Position		FPosition;
+			typedef					FrameDrawMode::_FrameDrawMode	FDrawMode;
 		public:
 			/// <summary>
 			///		デストラクタ
 			/// </summary>
-			virtual				~__FrameBase();
+			virtual					~__FrameBase();
 			/// <summary>
 			///		このフレームが有効かどうか．
 			/// </summary>
@@ -1001,7 +997,7 @@ namespace Apocalypse
 			///		<para>フレームが無効な場合，自身と自身を親に持つフレームの</para>
 			///		<para>位置移動・描画が行われなくなります．</para>
 			/// </remarks>
-			bool				Enable;
+			bool					Enable;
 			/// <summary>
 			///		このフレームを描画するかどうか．
 			/// </summary>
@@ -1009,16 +1005,24 @@ namespace Apocalypse
 			///		<para>falseに指定するとフレームを描画しなくなります．</para>
 			///		<para>Enableとの違いは，子フレームにも影響を及ぼすかどうかです．</para>
 			/// </remarks>
-			bool				Visible;
+			bool					Visible;
+			/// <summary>
+			///		このフレームを枠内描画するかどうか．
+			/// </summary>
+			/// <remarks>
+			///		<para>trueに指定するとフレームの外側に描画を行わなくなります．</para>
+			///		<para>標準ではtrueです．</para>
+			/// </remarks>
+			bool					DrawFramework;
 			/// <summary>
 			///		このフレームの基準位置からの座標．
 			/// </summary>
-			Value::Point		Points;
+			Value::Point			Points;
 			/// <summary>
 			///		<para>このフレームの描画順番．高いほど手前に描画される．</para>
 			///		<para>0に指定すると親フレームのZ座標から自動で指定される．</para>
 			/// </summary>
-			unsigned int		DrawOrder;
+			unsigned int			DrawOrder;
 			/// <summary>
 			///		設置位置を決定する定数．
 			/// </summary>
@@ -1026,7 +1030,7 @@ namespace Apocalypse
 			///		<para>親フレームのどの位置に設置するかを決定します．</para>
 			///		<para><see cref="FramePosition">FramePosition</see>で定義された定数を使用して下さい．</para>
 			/// </remarks>
-			FPosition			Position;
+			FPosition				Position;
 			/// <summary>
 			///		中心位置を決定する定数．
 			/// </summary>
@@ -1034,72 +1038,71 @@ namespace Apocalypse
 			///		<para>このフレームの中心をどの位置に設置するかを決定する定数．</para>
 			///		<para><see cref="FramePosition">FramePosition</see>で定義された定数を使用して下さい．</para>
 			/// </remarks>
-			FPosition			Interpret;
+			FPosition				Interpret;
 			/// <summary>
 			///		描画方法の種類．
 			/// </summary>
 			/// <remarks>
 			///		<see cref="FrameDrawMode">FrameDrawMode</see>で定義された定数を使用して下さい．
 			/// </remarks>
-			FDrawMode			DrawMode;
+			FDrawMode				DrawMode;
 			/// <summary>
 			///		このフレームの親フレーム．
 			/// </summary>
-			__FrameBase*		Parent;
+			__FrameBase*			Parent;
 			/// <summary>
 			///		フレームの横幅を取得する
 			/// </summary>
-			int					GetWidth() const;
+			int						GetWidth() const;
 			/// <summary>
 			///		フレームの縦幅を取得する
 			/// </summary>
-			int					GetHeight() const;
+			int						GetHeight() const;
 			/// <summary>
 			///		フレームの左上の座標を取得する
 			/// </summary>
-			Value::Point		GetLocation() const;
+			Value::Point			GetLocation() const;
 			/// <summary>
 			///		フレームの状態を文字列で返却する．
 			/// </summary>
-			virtual Value::String
-								ToString() const;
+			virtual Value::String	ToString() const;
 		private:
 			/// <summary>
 			///		自身の標準のX, Y座標を指定する関数．
 			/// </summary>
-			void				_SetDefaultPosition();
+			void					_SetDefaultPosition();
 			/// <summary>
 			///		自身の標準の縦幅と横幅を指定する関数．仮想関数です．
 			/// </summary>
-			virtual void		_SetProperties() = 0;
+			virtual void			_SetProperties() = 0;
 			/// <summary>
 			///		自身のフレームを描画する関数です．仮想関数です．
 			/// </summary>
-			virtual void		_DrawThisFrame() const = 0;
+			virtual void			_DrawThisFrame() const = 0;
 		protected:
 			/// <summary>
 			///		このフレームを描画する左上の場所
 			/// </summary>
-			Value::Point		_Location;
+			Value::Point			_Location;
 			/// <summary>
 			///		フレームの位置合わせを行うかどうか．標準でtrue．
 			/// </summary>
-			bool				_AutoAdjustPosition;
+			bool					_AutoAdjustPosition;
 			/// <summary>
 			///		このフレームの横幅．
 			/// </summary>
-			int					_Width;
+			int						_Width;
 			/// <summary>
 			///		このフレームの縦幅．
 			/// </summary>
-			int					_Height;
+			int						_Height;
 			/// <summary>
 			///		コンストラクタ
 			/// </summary>
 			/// <param name = "fParent">
 			///		親フレーム．
 			/// </param>
-								__FrameBase();
+									__FrameBase();
 		};
 
 		///	<summary>
@@ -1128,32 +1131,32 @@ namespace Apocalypse
 			/// <remarks>
 			///		trueで％指定になります(100%で親と同じ幅)．falseで絶対値指定になります．
 			/// </remarks>
-			bool				SpecifyWithParcent;
+			bool					SpecifyWithParcent;
 			///	<summary>
 			///		横幅を指定する．
 			///	</summary>
-			int					Width;
+			int						Width;
 			///	<summary>
 			///		縦幅を指定する．
 			///	</summary>
-			int					Height;
+			int						Height;
 			///	<summary>
 			///		何も描画しないフレームを作成する際に実行される関数．
 			///	</summary>
-								EdgeFrame();
+									EdgeFrame();
 			///	<summary>
 			///		デストラクタ
 			///	</summary>
-			virtual				~EdgeFrame(){}
+			virtual					~EdgeFrame(){}
 		protected:
 			///	<summary>
 			///		フレームを描画する関数．このフレームの場合は何もしない．
 			///	</summary>
-			virtual void		_DrawThisFrame() const {}
+			virtual void			_DrawThisFrame() const {}
 			///	<summary>
 			///		自身のプロパティを指定する関数．
 			///	</summary>
-			virtual void		_SetProperties();
+			virtual void			_SetProperties();
 		};
 
 		///	<summary>
@@ -1230,136 +1233,142 @@ namespace Apocalypse
 		///		PictureFrame* Pict = new PictureFrame("画像001.png");
 		///		</code>
 		/// </example>
-		class PictureFrame : virtual public __FrameBase
+		class PictureFrame : virtual public EdgeFrame
 		{
 		public:
 			///	<summary>
-			///		グラデーション・枠線を描画するフレームを作成する際に
+			///		画像の描画の種類を示す定数を定義した列挙型．
+			///	</summary>
+			///	<remark>
+			///		C++の性質上enumを外に置くとサジェストが汚染されるので
+			///		クラスの内部に隠蔽しています．
+			///	</remark>
+			class					DrawType : public Base::__ApcEnumeration
+			{
+			public:
+				///	<summary>
+				///		画像の描画の種類を示す定数を定義した列挙型．
+				///	</summary>
+				enum		_Type
+				{
+					///	<summary>
+					///		特に変化を加えずフレームの左上に描画する．
+					///	</summary>
+					TopLeft,
+					///	<summary>
+					///		特に変化を加えずフレームの中央上に描画する．
+					///	</summary>
+					TopCenter,
+					///	<summary>
+					///		特に変化を加えずフレームの右上に描画する．
+					///	</summary>
+					TopRight,
+					///	<summary>
+					///		特に変化を加えずフレームの左中央に描画する．
+					///	</summary>
+					MiddleLeft,
+					///	<summary>
+					///		特に変化を加えずフレームの中心に描画する．
+					///	</summary>
+					MiddleCenter,
+					///	<summary>
+					///		特に変化を加えずフレームの右中央に描画する．
+					///	</summary>
+					MiddleRight,
+					///	<summary>
+					///		特に変化を加えずフレームの左下に描画する．
+					///	</summary>
+					BottomLeft,
+					///	<summary>
+					///		特に変化を加えずフレームの中央下に描画する．
+					///	</summary>
+					BottomCenter,
+					///	<summary>
+					///		特に変化を加えずフレームの右下に描画する．
+					///	</summary>
+					BottomRight,
+					///	<summary>
+					///		フレームの縦横幅いっぱいに拡大して描画する
+					///	</summary>
+					Stretch,
+					///	<summary>
+					///		フレーム内に収まるよう中心拡大して描画する．Stretchと違い，画像の比率はそのまま描画する．
+					///	</summary>
+					Zoom,
+					///	<summary>
+					///		標準の描画モード．
+					///	</summary>
+					Default = TopLeft,
+				};
+			};
+			///	<summary>
+			///		画像ファイルを読み込んで描画するフレームを作成する際に
 			///		実行される関数．
 			///	</summary>
 			/// <param name = "ImgPath">
 			///		表示する画像ファイルの場所．
 			/// </param>
-							PictureFrame(Value::String ImgPath = _T(""));
+									PictureFrame(Value::String ImgPath = _T(""));
 			///	<summary>
 			///		画像ファイルの場所．
 			///	</summary>
-			Value::String	Path;
+			Value::String			Path;
 			/// <summary>
 			///		このフレームのαブレンド．
 			/// </summary>
 			/// <remarks>
 			///		255で不透明．0で透明．
 			/// </remarks>
-			int				Alpha;
+			int						Alpha;
+			/// <summary>
+			///		描画の位置と縦横幅をDrawTypeから選択する．
+			/// </summary>
+			DrawType::_Type			PositionType;
 			/// <summary>
 			///		描画を反転するかどうか．
 			/// </summary>
-			bool			Turned;
+			bool					Turned;
 			/// <summary>
-			///		デストラクタ
+			///		読み込んだ画像の大きさを引数に代入し返却する．
 			/// </summary>
-			virtual			~PictureFrame();
+			void					GetDefaultSize(int* Wth, int* Hgt) const;
 			/// <summary>
 			///		フレームの状態を文字列で返却する．
 			/// </summary>
-			virtual Value::String
-							ToString() const;
+			virtual Value::String	ToString() const;
+			/// <summary>
+			///		デストラクタ
+			/// </summary>
+			virtual					~PictureFrame();
 		protected:
 			///	<summary>
 			///		自身のプロパティを指定する関数．
 			///	</summary>
-			virtual void	_SetProperties();
+			virtual void			_SetProperties();
 			///	<summary>
 			///		フレームを描画する関数．
 			///	</summary>
-			virtual void	_DrawThisFrame() const;
+			virtual void			_DrawThisFrame() const;
+			///	<summary>
+			///		PositionTypeから描画位置を取得する．
+			///	</summary>
+			Value::Point			_GetDrawPoint() const;
 			///	<summary>
 			///		画像ファイルのハンドル
 			///	</summary>
-			int				_PictureHandle;
+			int						_PictureHandle;
 			///	<summary>
 			///		画像ファイルの場所
 			///	</summary>
-			Value::String	_PicturePath;
-		};
-
-		///	<summary>
-		///		タイル状，拡大表示が表示可能なPictureFrame.
-		///	</summary>
-		/// <remarks>
-		///		Width, Heightの値を設定することで読み込んだ画像をタイル状に，あるいは拡大表示して表示します．
-		/// </remarks>
-		/// <example>
-		///		使用例: 
-		///		<code>
-		///		// TilePictureFrameをnewで確保して，600/400の領域にタイル表示させる．
-		///		TilePictureFrame* TlPict = new TilePictureFrame("画像.png");
-		///		TlPict->Width = 600;
-		///		TlPict->Height = 400;
-		///		TlPict->SpecifyWithParcent = false;
-		///		</code>
-		/// </example>
-		class AreaPictureFrame : virtual public PictureFrame, virtual public EdgeFrame
-		{
-		public:
+			Value::String			_PicturePath;
 			///	<summary>
-			///		タイル状に画像を描画するフレームを作成する際に
-			///		実行される関数．
+			///		画像ファイルの標準の横幅．
 			///	</summary>
-			/// <param name = "ImgPath">
-			///		表示する画像ファイルの場所．
-			/// </param>
-							AreaPictureFrame(Value::String ImgPath = _T(""));
-			/// <summary>
-			///		このフレームのタイル模様のX座標．
-			/// </summary>
-			/// <remark>
-			///		この値を増加させるとタイルの模様がX方向に移動します．
-			///	</remark>
-			/// <example>
-			///		使用例: 
-			///		<code>
-			///		// タイルの模様を右下に移動させていく．
-			///		static TilePictureFrame* TlPict = new TilePictureFrame("格子.png");
-			///		TlPict->TileX++;
-			///		TlPict->TileY++;
-			///		</code>
-			/// </example>
-			int				TileX;
-			/// <summary>
-			///		このフレームのタイル模様のY座標．
-			/// </summary>
-			/// <remark>
-			///		この値を増加させるとタイルの模様がY方向に移動します．
-			///	</remark>
-			/// <example>
-			///		TilePictureFrame::TileXの例をご覧ください．
-			/// </example>
-			int				TileY;
-			/// <summary>
-			///		引き伸ばして表示するかどうか．
-			/// </summary>
-			/// <remarks>
-			///		枠内部の部分を引き伸ばして表示するか，それとも繰り返し描画するかを選択します．
-			///		例としては，グラデーションを使用している場合はtrue，タイル模様ならばfalseなどです．
-			///		このプロパティをtrueに指定すると，TileX, TileYは無視されます．
-			/// </remarks>
-			bool			StretchDraw;
-			/// <summary>
-			///		フレームの状態を文字列で返却する．
-			/// </summary>
-			virtual Value::String
-							ToString() const;
-		private:
+			int						_DefaultSizeW;
 			///	<summary>
-			///		自身のプロパティを指定する関数．
+			///		画像ファイルの標準の縦．
 			///	</summary>
-			virtual void	_SetProperties();
-			///	<summary>
-			///		フレームを描画する関数．
-			///	</summary>
-			virtual void	_DrawThisFrame() const;
+			int						_DefaultSizeH;
 		};
 
 		///	<summary>
@@ -1385,23 +1394,23 @@ namespace Apocalypse
 			/// <param name = "ImgPath">
 			///		表示する画像ファイルの場所．
 			/// </param>
-							MovieFrame(Value::String MovPath = _T(""));
+									MovieFrame(Value::String MovPath = _T(""));
 			///	<summary>
 			///		再生時の音量．0(最小)～10000(最大)で指定する．
 			///	</summary>
-			UINT			Volume;
+			UINT					Volume;
 			///	<summary>
 			///		動画の再生を開始する．
 			///	</summary>
-			void			Play();
+			void					Play();
 			///	<summary>
 			///		動画の再生を一時的に中止する．
 			///	</summary>
-			void			Pause();
+			void					Pause();
 			///	<summary>
 			///		動画の再生を中止する．
 			///	</summary>
-			void			Stop();
+			void					Stop();
 			///	<summary>
 			///		動画の再生状態を取得する．
 			///		戻り値と MoviePlayState クラスの値とを比較演算することで判定する．
@@ -1415,21 +1424,20 @@ namespace Apocalypse
 			///		}
 			///		</code>
 			/// </example>
-			UINT			State();
+			UINT					State();
 			/// <summary>
 			///		フレームの状態を文字列で返却する．
 			/// </summary>
-			virtual Value::String
-							ToString() const;
+			virtual Value::String	ToString() const;
 		private:
 			///	<summary>
 			///		自身のプロパティを指定する関数．
 			///	</summary>
-			virtual void	_SetProperties();
+			virtual void			_SetProperties();
 			///	<summary>
 			///		フレームを描画する関数．
 			///	</summary>
-			virtual void	_DrawThisFrame() const;
+			virtual void			_DrawThisFrame() const;
 		};
 
 		///	<summary>
@@ -1447,9 +1455,44 @@ namespace Apocalypse
 		///		Str->Text = Str->ToString();
 		///		</code>
 		/// </example>
-		class TextFrame : public __FrameBase
+		class TextFrame : public EdgeFrame
 		{
+			typedef					std::vector<Value::String>	StrArray;
 		public:
+			///	<summary>
+			///		文字列の描画の位置を示す定数を定義した列挙型．
+			///	</summary>
+			typedef					FramePosition				TextPosition;
+			///	<summary>
+			///		文字列の描画の種類を示す定数を定義した列挙型．
+			///	</summary>
+			class					TextShowType
+			{
+			public:
+				///	<summary>
+				///		文字列の描画の種類を示す定数を定義した列挙型．
+				///	</summary>
+				enum				_Type
+				{
+					///	<summary>
+					///		特に何もせず描画する．
+					///	</summary>
+					None,
+					///	<summary>
+					///		文字列がフレーム内からはみ出しそうになったら一行に収まるように描画する．
+					///		はみ出さない場合はそのまま描画する．
+					///	</summary>
+					Pack,
+					///	<summary>
+					///		枠からはみ出ないように自動で改行する．
+					///	</summary>
+					Return,
+					///	<summary>
+					///		標準の描画種類．
+					///	</summary>
+					Default = None,
+				};
+			};
 			///	<summary>
 			///		描画する文字列．
 			///	</summary>
@@ -1463,12 +1506,24 @@ namespace Apocalypse
 			///		<para>文字送りを行うかどうか．標準ではfalse．</para>
 			///		<para>文字送りを行う状態でも全文字送りが終了した段階でfalseに変更される．</para>
 			/// </summary>
-			bool					TextAdvance;
+			bool					TextAdvance; 
+			/// <summary>
+			///		行と行の間の文字幅．
+			/// </summary>
+			int						HeightInterval;
 			/// <summary>
 			///		<para>文字送り用のタイマー．初期状態では文字送りをしない．</para>
 			///		<para>値が1000増える度に1文字表示する．</para>
 			/// </summary>
 			Value::Timer			TextTimer;
+			///	<summary>
+			///		文字列の描画の種類をTextFrame::TextShowTypeから設定します．
+			///	</summary>
+			TextShowType::_Type		ShowType;
+			///	<summary>
+			///		文字列の描画の位置をTextFrame::TextPlaceから設定します．
+			///	</summary>
+			TextPosition::_Position	ShowPlace;
 			/// <summary>
 			///		フレームの状態を文字列で返却する．
 			/// </summary>
@@ -1494,15 +1549,25 @@ namespace Apocalypse
 			///		フレームを描画する関数．
 			///	</summary>
 			virtual void			_DrawThisFrame() const;
+			///	<summary>
+			///		Textプロパティが変更されたことを検知する用の変数．
+			///	</summary>
+			Value::String			_BackupStr;
+			///	<summary>
+			///		Textを複数行に分解してString型のVectorで保存する．
+			///		Textが変更された際にこれも変更する．
+			///	</summary>
+			StrArray				_DrawTextsArray;
 		protected:
 			///	<summary>
-			///		描画する文字(TextからTimerなどを考慮した文字)．
+			///		引数に渡した文字列の幅を取得する．
+			///		画像文字列を実装することに備え仮想関数にする．
 			///	</summary>
-			Value::String			_DrawText;
+			virtual int				_GetSingleLineTextWidth(const Value::String &DrStr) const;
 			///	<summary>
-			///		描画する文字を取得（Timer考慮）．
+			///		引数に渡した文字列の描画を開始するZ座標を返却する．
 			///	</summary>
-			virtual void			_SetDrawString();
+			Value::Point			_GetSingleLineTextDrawPoint(const Value::String &DrStr, UINT DefLines, UINT Line) const;
 		};
 	}
 }
