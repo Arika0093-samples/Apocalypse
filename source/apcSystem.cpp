@@ -15,7 +15,7 @@ UINT			ApplicationConfig::Height			= 480;
 String			ApplicationConfig::Title			= _T("Apocalypse");
 String			ApplicationConfig::ClassName		= _T("APOCALYPSE_APPLICATION");
 String			ApplicationConfig::DefaultFontName	= ApplicationConfig::_GetDefaultFontName();
-UINT			ApplicationConfig::Refresh			= 0;
+UINT			ApplicationConfig::Refresh			= 60;
 SeqFunc			ApplicationConfig::Sequence			= NULL;
 ExitFunc		ApplicationConfig::ExitFunction		= NULL;
 bool			ApplicationConfig::ActiveAll		= false;
@@ -83,10 +83,10 @@ String			ApplicationConfig::_GetDefaultFontName()
 // ----------------------------------------------------
 //	ApcSystem::ApcSystem (Constructor)
 // ----------------------------------------------------
-				__ApcSystem::__ApcSystem()
+				_System::_System()
 {
 	// Localeを現在の標準言語で指定する
-	_tsetlocale(LC_ALL, _T(""));
+	// _tsetlocale(LC_ALL, _T(""));
 	// カレントディレクトリを指定する
 	_SetProgramDirectory();
 };
@@ -94,7 +94,7 @@ String			ApplicationConfig::_GetDefaultFontName()
 // ----------------------------------------------------
 //	ApcSystem::SetProgramDirectory
 // ----------------------------------------------------
-void			__ApcSystem::_SetProgramDirectory() const
+void			_System::_SetProgramDirectory() const
 {
 	// プログラムの基準ディレクトリを保存するための変数
 	TCHAR DirPath[1024];
@@ -116,7 +116,7 @@ void			__ApcSystem::_SetProgramDirectory() const
 // ----------------------------------------------------
 //	ApcSystem::ApcStart
 // ----------------------------------------------------
-bool			__ApcSystem::ApcStart() const
+bool			_System::ApcStart() const
 {
 	// 起動前準備を行う
 	_InitGameProcess();
@@ -128,14 +128,14 @@ bool			__ApcSystem::ApcStart() const
 // ----------------------------------------------------
 //	ApcSystem::ApcProcess
 // ----------------------------------------------------
-bool			__ApcSystem::ApcProcess() const
+bool			_System::ApcProcess() const
 {
 	// 裏画面を表画面に反映．
 	ScreenFlip();
 	// 裏画面に描画されている内容を消去．
 	ClearDrawScreen();
 	// もしシーケンスが空ならば
-	if(__SequenceCollection::GetInstance().Top() == NULL){
+	if(_SequenceCollection::GetInstance().Top() == NULL){
 		// 終了．
 		return false;
 	}
@@ -153,7 +153,7 @@ bool			__ApcSystem::ApcProcess() const
 		return false;
 	}
 	// カウンタの値を増加させておく．
-	__FrameCounter::GetInstance()._CountAdd();
+	_FrameCounter::GetInstance()._CountAdd();
 	// キーボードの状態を更新する．
 	KeyBoard::GetInstance()._CheckKeyEvent();
 	// マウスの状態を更新する．
@@ -165,7 +165,7 @@ bool			__ApcSystem::ApcProcess() const
 // ----------------------------------------------------
 //	ApcSystem::ApcEnd
 // ----------------------------------------------------
-void			__ApcSystem::ApcEnd() const
+void			_System::ApcEnd() const
 {
 	//	終了プロセスをコールする
 	_RunEndProcess();
@@ -174,7 +174,7 @@ void			__ApcSystem::ApcEnd() const
 // ----------------------------------------------------
 //	ApcSystem::InitGameProcess
 // ----------------------------------------------------
-void			__ApcSystem::_InitGameProcess() const
+void			_System::_InitGameProcess() const
 {
 	// 設定を適用する
 	ApplicationConfig::Accept();
@@ -183,7 +183,7 @@ void			__ApcSystem::_InitGameProcess() const
 // ----------------------------------------------------
 //	ApcSystem::RunStartProcess
 // ----------------------------------------------------
-void			__ApcSystem::_RunStartProcess() const
+void			_System::_RunStartProcess() const
 {
 	//	起動．失敗したら帰る．
 	if(DxLib_Init() == -1){
@@ -196,8 +196,39 @@ void			__ApcSystem::_RunStartProcess() const
 // ----------------------------------------------------
 //	ApcSystem::RunEndProcess
 // ----------------------------------------------------
-void			__ApcSystem::_RunEndProcess() const
+void			_System::_RunEndProcess() const
 {
 	// 終了する．
 	DxLib_End();
 };
+
+// ----------------------------------------------------
+//	FrameCounter
+// ----------------------------------------------------
+//	FrameCounter::FrameCounter
+// ----------------------------------------------------
+				_FrameCounter::_FrameCounter()
+{
+	// 値を初期化する
+	_Value = 0;
+	// 終了
+	return;
+}
+
+// ----------------------------------------------------
+//	FrameCounter::GetCount
+// ----------------------------------------------------
+double			_FrameCounter::GetCount()
+{
+	// 返却する
+	return GetInstance()._Value;
+}
+
+// ----------------------------------------------------
+//	FrameCounter::CountAdd
+// ----------------------------------------------------
+void			_FrameCounter::_CountAdd()
+{
+	// 値を1増加する
+	_Value++;
+}

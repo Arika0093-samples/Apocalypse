@@ -10,7 +10,7 @@
 // --------------------------------------------------------
 //	ApcBase::ToString
 // --------------------------------------------------------
-String		__ApcBase::ToString() const
+String		_ApcBase::ToString() const
 {
 	// 
 	return String() << this;
@@ -21,7 +21,7 @@ String		__ApcBase::ToString() const
 // --------------------------------------------------------
 //	ApcInside::ToString
 // --------------------------------------------------------
-String		__ApcInside::ToString() const
+String		_ApcInside::ToString() const
 {
 	// 
 	return String() << this;

@@ -19,12 +19,15 @@ namespace Apocalypse
 		class String;
 	}
 
+	// ----------------------------------------------------
+	//	Base名前空間内のクラスを記載
+	// ----------------------------------------------------
 	namespace Base
 	{
 		///	<summary>
 		///		Apocalypse内のユーザーが使用する全クラス（定数列挙クラスを除く）の継承元．
 		///	</summary>
-		class __ApcBase
+		class _ApcBase
 		{
 		public:
 			///	<summary>
@@ -35,33 +38,33 @@ namespace Apocalypse
 			///	<summary>
 			///		コンストラクタ
 			///	</summary>
-									__ApcBase(){}
+									_ApcBase(){}
 			///	<summary>
 			///		デストラクタ
 			///	</summary>
-			virtual					~__ApcBase(){}
+			virtual					~_ApcBase(){}
 		};
 
 		///	<summary>
 		///		Apocalypse内の定数などを列挙したクラスの継承元．
 		///	</summary>
-		class __ApcEnumeration
+		class _ApcEnumeration
 		{
 		protected:
 			///	<summary>
 			///		コンストラクタ
 			///	</summary>
-									__ApcEnumeration(){}
+									_ApcEnumeration(){}
 			///	<summary>
 			///		デストラクタ
 			///	</summary>
-			virtual					~__ApcEnumeration(){}
+			virtual					~_ApcEnumeration(){}
 		};
 
 		///	<summary>
 		///		内部で使用するクラスの継承元．
 		///	</summary>
-		class __ApcInside
+		class _ApcInside
 		{
 		public:
 			///	<summary>
@@ -72,11 +75,11 @@ namespace Apocalypse
 			///	<summary>
 			///		コンストラクタ
 			///	</summary>
-									__ApcInside(){}
+									_ApcInside(){}
 			///	<summary>
 			///		デストラクタ
 			///	</summary>
-			virtual					~__ApcInside(){}
+			virtual					~_ApcInside(){}
 		};
 	}
 }

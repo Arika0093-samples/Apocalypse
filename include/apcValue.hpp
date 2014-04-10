@@ -34,41 +34,48 @@ namespace Apocalypse
 		///	<summary>
 		///		一定間隔で増加していく値を管理する．
 		///	</summary>
-		class Timer : public virtual Base::__ApcInside
+		class Timer : public virtual Base::_ApcInside
 		{
 		public:
+			///	<summary>
+			///		タイマーの繰り返すタイプの一覧．
+			///	</summary>
+			class					LoopType : public Base::_ApcEnumeration
+			{
+			public:
+				///	<summary>
+				///		タイマーの繰り返すタイプの一覧．
+				///	</summary>
+				enum					_LoopType
+				{
+					///	<summary>
+					///		繰り返さない．最終地点で停止する．
+					///	</summary>
+					No,
+					///	<summary>
+					///		最後まで到達したら最初から繰り返す．
+					///	</summary>
+					Repeat,
+					///	<summary>
+					///		最後まで到達したら一度だけ折り返す．
+					///	</summary>
+					ReturnOnce,
+					///	<summary>
+					///		端まで到達したら折り返す．
+					///	</summary>
+					Return,
+				};
+			};
 			///	<summary>
 			///		コンストラクタ
 			///	</summary>
 									Timer();
 			///	<summary>
-			///		タイマーの繰り返すタイプの一覧．
-			///	</summary>
-			enum					_LoopType
-			{
-				///	<summary>
-				///		繰り返さない．最終地点で停止する．
-				///	</summary>
-				No,
-				///	<summary>
-				///		最後まで到達したら最初から繰り返す．
-				///	</summary>
-				Repeat,
-				///	<summary>
-				///		最後まで到達したら一度だけ折り返す．
-				///	</summary>
-				ReturnOnce,
-				///	<summary>
-				///		端まで到達したら折り返す．
-				///	</summary>
-				Return,
-			};
-			///	<summary>
 			///		タイマーの値を取得する．
 			///	</summary>
 			double					operator()();
 			///	<summary>
-			///		更新タイミングで値をいくつ増加させるか．
+			///		1秒間に値をいくつ増加させるか．
 			///	</summary>
 			double					Add;
 			///	<summary>
@@ -80,9 +87,17 @@ namespace Apocalypse
 			///	</summary>
 			bool					Enable;
 			///	<summary>
+			///		タイマーが停止しているかどうかを指定，取得する．
+			///	</summary>
+			bool					TimerStop;
+			///	<summary>
+			///		値の増加にフレームカウンタを使用するかどうか．
+			///	</summary>
+			bool					UseFrameCounter;
+			///	<summary>
 			///		折り返す種類．標準ではNo(折り返さない)．
 			///	</summary>
-			_LoopType				LoopType;
+			LoopType::_LoopType		LoopType;
 			/// <summary>
 			///		Timerの値を初期化する．
 			/// </summary>
@@ -97,17 +112,13 @@ namespace Apocalypse
 			double					_GetValueNoReload() const;
 		private:
 			///	<summary>
-			///		内部で保持する値．
-			///	</summary>
-			double					_Val;
-			///	<summary>
 			///		折り返しているかどうか．
 			///	</summary>
 			bool					_IsReturned;
 			///	<summary>
-			///		最後に呼び出された時のFC値．
+			///		最後に呼び出された時のFC値またはカウンタ値．
 			///	</summary>
-			double					_LastCalledFrame;
+			double					_LastCalledValue;
 			///	<summary>
 			///		タイマー更新
 			///	</summary>
@@ -116,12 +127,20 @@ namespace Apocalypse
 			///		繰り返し時の処理関数
 			///	</summary>
 			bool					_RepeatFunc();
+			///	<summary>
+			///		内部で保持する値．
+			///	</summary>
+			double					_Val;
+			///	<summary>
+			///		UseFrameCounterの変更検知用変数．
+			///	</summary>
+			bool					_BackupUseFlag;
 		};
 
 		///	<summary>
 		///		doubleで座標を管理するPOINT構造体．
 		///	</summary>
-		class Point : public virtual Base::__ApcBase
+		class Point : public virtual Base::_ApcBase
 		{
 		public:
 			///	<summary>
@@ -151,7 +170,7 @@ namespace Apocalypse
 			///	<summary>
 			///		コピーする．
 			///	</summary>
-			Point&					operator=(Point& Pt);
+			Point&					operator=(const Point& Pt);
 			///	<summary>
 			///		コピーする．
 			///	</summary>
@@ -159,11 +178,179 @@ namespace Apocalypse
 			///	<summary>
 			///		比較する．
 			///	</summary>
-			bool					operator==(Point& Pt);
+			bool					operator==(const Point& Pt) const;
 			///	<summary>
 			///		比較する．
 			///	</summary>
-			bool					operator!=(Point& Pt);
+			bool					operator!=(const Point& Pt) const;
+		};
+
+		///	<summary>
+		///		開始位置と縦横幅で四角形を管理する構造体．
+		///	</summary>
+		class RectangleArea : public Base::_ApcBase
+		{
+		public:
+			/// <summary>
+			///		コンストラクタ．
+			/// </summary>
+									RectangleArea();
+			/// <summary>
+			///		コンストラクタ．
+			/// </summary>
+									RectangleArea(Value::Point &Pt, int Width, int Height);
+			/// <summary>
+			///		四角形の開始地点．
+			/// </summary>
+			Point					Location;
+			/// <summary>
+			///		四角形の横幅
+			/// </summary>
+			double					Width;
+			/// <summary>
+			///		四角形の縦幅
+			/// </summary>
+			double					Height;
+			/// <summary>
+			///		クラスの情報を文字列で取得する．
+			/// </summary>
+			virtual Value::String	ToString() const;
+		};
+
+		///	<summary>
+		///		doubleで四角形を管理するMargin/Padding用の構造体．
+		///	</summary>
+		class MarginRectangle : public Base::_ApcBase
+		{
+			/// <summary>
+			///		プロパティの値を管理するクラス．
+			/// </summary>
+			class					_Property : public Base::_ApcInside
+			{
+			public:
+				/// <summary>
+				///		コンストラクタ．
+				/// </summary>
+									_Property(){ _Value = 0, Auto = false; }
+				/// <summary>
+				///		コンストラクタ．
+				/// </summary>
+									_Property(bool IsAuto){ _Value = 0, Auto = IsAuto; }
+				/// <summary>
+				///		プロパティの値を取得する．
+				/// </summary>
+									operator double(){ return _Value; }
+				/// <summary>
+				///		プロパティに値を代入する．
+				/// </summary>
+				double				operator=(double Val){ return _Value = Val; }
+				/// <summary>
+				///		プロパティに値を代入する．
+				/// </summary>
+				_Property&			operator=(const _Property &Val)
+				{
+					Auto = Val.Auto, Percent = Val.Percent, _Value = Val._Value;
+					return *this;
+				}
+				/// <summary>
+				///		プロパティと値を比較する．
+				/// </summary>
+				bool				operator==(const _Property &Val) const
+				{
+					return (Auto == Val.Auto && Percent == Val.Percent && _Value == Val._Value);
+				}
+				/// <summary>
+				///		プロパティと値をNOT比較する．
+				/// </summary>
+				bool				operator!=(const _Property &Val) const{ return !(*this == Val); }
+				/// <summary>
+				///		プロパティを自動で指定するかどうか．
+				/// </summary>
+				bool				Auto;
+				/// <summary>
+				///		プロパティを%で指定するかどうか．
+				/// </summary>
+				bool				Percent;
+				/// <summary>
+				///		引数の値から実際の値を算出する
+				/// </summary>
+				double				CalclateValue(double BaseSize) const;
+				/// <summary>
+				///		クラスの情報を文字列で取得する．
+				/// </summary>
+				virtual Value::String
+									ToString() const;
+			private:
+				/// <summary>
+				///		プロパティの値．
+				/// </summary>
+				double				_Value;
+			};
+		public:
+			/// <summary>
+			///		コンストラクタ．
+			/// </summary>
+									MarginRectangle();
+			/// <summary>
+			///		コンストラクタ．
+			/// </summary>
+									MarginRectangle(double Left, double Right, double Top, double Bottom);
+			/// <summary>
+			///		左側の値．
+			/// </summary>
+			_Property				Left;
+			/// <summary>
+			///		右側の値．
+			/// </summary>
+			_Property				Right;
+			/// <summary>
+			///		上側の値．
+			/// </summary>
+			_Property				Top;
+			/// <summary>
+			///		下側の値．
+			/// </summary>
+			_Property				Bottom;
+			/// <summary>
+			///		値を自動指定するよう設定する際に使用する値．
+			/// </summary>
+			static const _Property	Auto;
+			/// <summary>
+			///		値を%指定するよう設定する際に使用する関数．
+			/// </summary>
+			static _Property		Percentage(double Percent);
+			/// <summary>
+			///		Rectangleクラスを比較する．
+			/// </summary>
+			bool					Compare(const MarginRectangle& Rc) const;
+			/// <summary>
+			///		自身の情報を元にRectangleを構成して返却する
+			/// </summary>
+			RectangleArea			CalclationArea(const RectangleArea &ArBase) const;
+			/// <summary>
+			///		クラスの情報を文字列で取得する．
+			/// </summary>
+			virtual Value::String	ToString() const;
+			///	<summary>
+			///		代入する．
+			///	</summary>
+			MarginRectangle&		operator()(double Left, double Right, double Top, double Bottom);
+			///	<summary>
+			///		代入する．
+			///	</summary>
+			MarginRectangle&		operator()(_Property Left, _Property Right, _Property Top, _Property Bottom);
+			///	<summary>
+			///		コピーする．
+			///	</summary>
+			MarginRectangle&		operator=(const MarginRectangle& Rc);
+			///	<summary>
+			///		同じ領域を示すか比較する．
+			///	</summary>
+			bool					operator==(const MarginRectangle& Rc) const;
+			///	<summary>
+			///		同じ領域を示していないか比較する．
+			///	</summary>
+			bool					operator!=(const MarginRectangle& Rc) const;
 		};
 
 		///	<summary>
@@ -174,7 +361,7 @@ namespace Apocalypse
 		///		<para>stringstreamのように使用することが可能になっています．</para>
 		///		<para>その他，便利そうな機能を追加しています．</para>
 		/// </remarks>
-		class String : public Base::__ApcBase, public std::basic_string<TCHAR>
+		class String : public Base::_ApcBase, public std::basic_string<TCHAR>
 		{
 			///	<summary>
 			///		typedef
@@ -249,6 +436,14 @@ namespace Apocalypse
 			///		文字列を代入する．
 			///	</summary>
 			String&					operator=(LPCTSTR Val);
+			///	<summary>
+			///		文字列を比較する．
+			///	</summary>
+			bool					operator==(String &Str) const;
+			///	<summary>
+			///		文字列をNOT比較する．
+			///	</summary>
+			bool					operator!=(String &Str) const;
 			///	<summary>
 			///		文字列にboolを流す．
 			///	</summary>

@@ -10,7 +10,7 @@
 // ----------------------------------------------------
 //	FrameBase::FrameBase (Constructor)
 // ----------------------------------------------------
-				__FrameBase::__FrameBase()
+				_FrameBase::_FrameBase()
 {
 	// 有効にする
 	this->Enable				= true;
@@ -21,220 +21,77 @@
 	this->DrawFramework			= true;
 	// 標準で位置合わせを行う
 	this->_AutoAdjustPosition	= true;
-	// 横幅縦幅をリセットする
-	this->_Width			= 0;
-	this->_Height			= 0;
-	// 描画位置を初期化
-	this->Position			= FramePosition::Default;
-	this->Interpret			= FramePosition::Default;
 	// 描画種類を初期化
-	this->DrawMode			= FrameDrawMode::Nearest;
+	this->DrawMode				= FrameDrawMode::Bilinear;
+	// Marginを初期化
+	this->Margin.Left			= MarginRectangle::Auto;
+	this->Margin.Right			= MarginRectangle::Auto;
+	this->Margin.Top			= MarginRectangle::Auto;
+	this->Margin.Bottom			= MarginRectangle::Auto;
 	// 親フレームをTopParentに初期化
-	this->Parent			= __FrameCollection::GetInstance().GetTopParent();
+	this->Parent				= _FrameCollection::GetInstance().GetTopParent();
 	// コレクションに追加
-	__FrameCollection::GetInstance().Insert(this);
+	_FrameCollection::GetInstance().Insert(this);
 }
 
 // ----------------------------------------------------
 //	FrameBase::~FrameBase (Destructor)
 // ----------------------------------------------------
-				__FrameBase::~__FrameBase()
+				_FrameBase::~_FrameBase()
 {
 	// FrameCollectionから自身のデータを消す
-	__FrameCollection::GetInstance().Erase(this);
+	_FrameCollection::GetInstance().Erase(this);
 }
 
 // ----------------------------------------------------
-//	FrameBase::GetWidth
+//	FrameBase::GetFrameArea
 // ----------------------------------------------------
-inline int		__FrameBase::GetWidth() const
+RectangleArea	_FrameBase::GetFrameArea() const
 {
-	return this->_Width;
-}
-
-// ----------------------------------------------------
-//	FrameBase::GetFrameHeight
-// ----------------------------------------------------
-inline int		__FrameBase::GetHeight() const
-{
-	return this->_Height;
+	// 返却用に確保
+	RectangleArea Rect;
+	// ------------------------------------------------
+	// 親フレームが存在するなら
+	if(Parent != nullptr && Parent != _FrameCollection::GetInstance().GetTopParent()){
+		// 親フレームのActualAreaを取得する
+		Rect = Parent->GetActualArea();
+	}
+	// 存在しない or 一番上のフレームなら
+	else {
+		// 領域を指定する
+		Rect.Location.X	= 0;
+		Rect.Location.Y	= 0;
+		Rect.Width		= System::ApplicationConfig::Width;
+		Rect.Height		= System::ApplicationConfig::Height;
+	}
+	// 返却
+	return Rect;
 }
 
 // ----------------------------------------------------
 //	FrameBase::GetFrameLocation
 // ----------------------------------------------------
-Point			__FrameBase::GetLocation() const
+RectangleArea	_FrameBase::GetActualArea() const
 {
-	return this->_Location;
+	// Maginを考慮した領域を取得
+	RectangleArea Rect = GetFrameArea();
+	// ------------------------------------------------
+	// このフレームの縦横幅を取得
+	Rect.Width	= (_GetActualWidth()  != -1 ? _GetActualWidth()  : Rect.Width);
+	Rect.Height	= (_GetActualHeight() != -1 ? _GetActualHeight() : Rect.Height);
+	// 領域を計算して返却
+	return Margin.CalclationArea(Rect);
 }
 
 // ----------------------------------------------------
 //	FrameBase::ToString
 // ----------------------------------------------------
-String			__FrameBase::ToString() const
+String			_FrameBase::ToString() const
 {
 	return String()
-		<< _T("Location: {") << _Location.ToString() << _T("}")
-		<< _T(", Width: ") << _Width
-		<< _T(", Height: ") << _Height
+		<< _T("FrameRectangle: {") << GetFrameArea().ToString() << _T("}")
+		<< _T(", ActualArea: {") << GetActualArea().ToString() << _T("}")
 		<< _T(", Order: ") << DrawOrder;
-}
-
-// ----------------------------------------------------
-//	FrameBase::SetDefaultPosition
-// ----------------------------------------------------
-void			__FrameBase::_SetDefaultPosition()
-{
-	// 親フレームを取得
-	auto PrtPtr = Parent;
-	// もし親フレームが存在しないなら
-	if(!PrtPtr || !_AutoAdjustPosition){
-		// 終了
-		return;
-	}
-	// 描画場所を0で初期化する．
-	this->_Location = 0;
-	// 基準とする位置で判定(X座標)．
-	switch(this->Position){
-		// (X座標)一番左を基準にするなら
-		case FramePosition::TopLeft:
-		case FramePosition::MiddleLeft:
-		case FramePosition::BottomLeft:
-			// 親のX座標をそのまま追加．
-			this->_Location.X += ((PrtPtr->_Location.X) + (this->Points.X));
-			break;
-		// (X座標)中心を基準に表示するなら
-		case FramePosition::TopCenter:
-		case FramePosition::MiddleCenter:
-		case FramePosition::BottomCenter:
-			// 親のX座標 + (親の幅/2)を追加．
-			this->_Location.X += ((PrtPtr->_Location.X) + (this->Points.X)
-							  + ((PrtPtr->_Width) / 2));
-			break;
-		// (X座標)一番右を基準に表示するなら
-		case FramePosition::TopRight:
-		case FramePosition::MiddleRight:
-		case FramePosition::BottomRight:
-			// 親のX座標 + 親の幅を追加．
-			this->_Location.X += ((PrtPtr->_Location.X) + (this->Points.X)
-							  +  (PrtPtr->_Width));
-			break;
-	}
-	// 基準とする位置で判定(Y座標)．
-	switch(this->Position){
-		// (Y座標)一番上を基準にするなら
-		case FramePosition::TopLeft:
-		case FramePosition::TopCenter:
-		case FramePosition::TopRight:
-			// 親のY座標をそのまま追加．
-			this->_Location.Y += ((PrtPtr->_Location.Y) + (this->Points.Y));
-			break;
-		// (Y座標)中心を基準に表示するなら
-		case FramePosition::MiddleLeft:
-		case FramePosition::MiddleCenter:
-		case FramePosition::MiddleRight:
-			// 親のY座標 + (親の高さ/2)を追加．
-			this->_Location.Y += ((PrtPtr->_Location.Y) + (this->Points.Y)
-							  + ((PrtPtr->_Height) / 2));
-			break;
-		// (Y座標)一番下を基準に表示するなら
-		case FramePosition::BottomLeft:
-		case FramePosition::BottomCenter:
-		case FramePosition::BottomRight:
-			// 親のY座標 + 親の高さを追加．
-			this->_Location.Y += ((PrtPtr->_Location.Y) + (this->Points.Y)
-							  +  (PrtPtr->_Height));
-			break;
-	}
-	// 解釈位置を確認(X座標)
-	switch(this->Interpret){
-		// 一番左を基準にするなら
-		case FramePosition::TopLeft:
-		case FramePosition::MiddleLeft:
-		case FramePosition::BottomLeft:
-			// 特に何もしない
-			break;
-		// 中央を基準にするなら
-		case FramePosition::TopCenter:
-		case FramePosition::MiddleCenter:
-		case FramePosition::BottomCenter:
-			// 幅の半分を引く．
-			this->_Location.X -= (this->_Width / 2);
-			break;
-		// 一番右を基準にするなら
-		case FramePosition::TopRight:
-		case FramePosition::MiddleRight:
-		case FramePosition::BottomRight:
-			// 幅を引く．
-			this->_Location.X -= (this->_Width);
-			break;
-	}
-	// 解釈位置を確認(Y座標)
-	switch(this->Interpret){
-		// 一番上を基準にするなら
-		case FramePosition::TopLeft:
-		case FramePosition::TopCenter:
-		case FramePosition::TopRight:
-			// 特に何もしない
-			break;
-		// 中心を基準にするなら
-		case FramePosition::MiddleLeft:
-		case FramePosition::MiddleCenter:
-		case FramePosition::MiddleRight:
-			// 高さの半分を引く．
-			this->_Location.Y -= (this->_Height / 2);
-			break;
-		// 一番下を基準にするなら
-		case FramePosition::BottomLeft:
-		case FramePosition::BottomCenter:
-		case FramePosition::BottomRight:
-			// 高さを引く．
-			this->_Location.Y -= (this->_Height);
-			break;
-	}
-}
-
-// ----------------------------------------------------
-//	EdgeFrame
-// ----------------------------------------------------
-//	EdgeFrame::EdgeFrame (Constructor)
-// ----------------------------------------------------
-				EdgeFrame::EdgeFrame()
-{
-	// ％指定で描画するよう指定
-	this->SpecifyWithParcent = true;
-	// 縦幅幅を100%に指定
-	this->Width		= 100;
-	this->Height	= 100;
-}
-
-// ----------------------------------------------------
-//	EdgeFrame::SetProperties
-// ----------------------------------------------------
-void			EdgeFrame::_SetProperties()
-{
-	// もし％指定でないなら
-	if(this->SpecifyWithParcent == false){
-		// Paramに指定された値をそのまま使用する
-		this->_Width	= Width;
-		this->_Height	= Height;
-	}
-	// もし%指定なら
-	else {
-		// 親フレームを取得
-		auto PrtPtr = Parent;
-		// もし無効なら
-		if(!PrtPtr){
-			// 例外を投げてもいい気がする
-			// throw XXXX;
-			return;
-		}
-		// 横幅と縦幅を指定する
-		_Width  = (PrtPtr->GetWidth ())* (Width)/100;
-		_Height = (PrtPtr->GetHeight())*(Height)/100;
-	}
-	// 終了．
-	return;
 }
 
 // ----------------------------------------------------
@@ -244,7 +101,7 @@ void			EdgeFrame::_SetProperties()
 // ----------------------------------------------------
 String			GradationFrame::ToString() const
 {
-	return this->EdgeFrame::ToString()
+	return this->PanelFrame::ToString()
 		<< _T(", Start: ")	<< StartGradColor.ToString()
 		<< _T(", End: ")	<< EndGradColor.ToString()
 		<< _T(", Border: ")<< BorderColor.ToString();
@@ -253,7 +110,7 @@ String			GradationFrame::ToString() const
 // ----------------------------------------------------
 //	GradationFrame::DrawThisFrame
 // ----------------------------------------------------
-void			GradationFrame::_DrawThisFrame() const
+void			GradationFrame::_DrawThisFrame(RectangleArea &Dr) const
 {
 	// もしグラデーション開始色が設定されていて
 	if(StartGradColor.Enable){
@@ -262,20 +119,27 @@ void			GradationFrame::_DrawThisFrame() const
 			// αブレンド適用
 			StartGradColor._AppendAlpha();
 			// 単色塗り
-			DrawBox(_Location.X, _Location.Y, (_Location.X + GetWidth()),
-					(_Location.Y + GetHeight()), StartGradColor._GetColor(), TRUE);
+			DrawBox(Dr.Location.X, Dr.Location.Y, Dr.Width, Dr.Height, StartGradColor._GetColor(), TRUE);
 		}
 		// 終了色が指定されている場合は
 		else {
+			// 描画色を指定する
+			Color GrDrawColor;
+			GrDrawColor.Enable = true;
 			// グラデーションを描画する
-			for(int Y = 0; Y < this->GetHeight(); Y++){
-				// 描画する色を取得する
-				auto DrawColor = StartGradColor._GetColorBlends(EndGradColor, (Y*100/GetHeight()));
+			for(int Y = 0; Y < Dr.Height; Y++){
+				// 開始色と終了色の割合を取得する
+				double DrParcent = Y*100.00/Dr.Height;
+				// 描画色を割合から算出する
+				GrDrawColor.A = (EndGradColor.A * DrParcent)/100 + (StartGradColor.A * (100-DrParcent))/100;
+				GrDrawColor.R = (EndGradColor.R * DrParcent)/100 + (StartGradColor.R * (100-DrParcent))/100;
+				GrDrawColor.G = (EndGradColor.G * DrParcent)/100 + (StartGradColor.G * (100-DrParcent))/100;
+				GrDrawColor.B = (EndGradColor.B * DrParcent)/100 + (StartGradColor.B * (100-DrParcent))/100;
 				// αブレンド適用
-				DrawColor->_AppendAlpha();
+				GrDrawColor._AppendAlpha();
 				// 一本ずつ描画する
-				DrawLine(_Location.X, _Location.Y + Y, _Location.X + GetWidth() - 1,
-						 _Location.Y + Y, DrawColor->_GetColor());
+				DrawLine(Dr.Location.X, Dr.Location.Y + Y, Dr.Width - 1,
+						 Dr.Location.Y + Y, GrDrawColor._GetColor());
 			}
 		}
 	}
@@ -284,8 +148,7 @@ void			GradationFrame::_DrawThisFrame() const
 		// αブレンド適用
 		BorderColor._AppendAlpha();
 		// 描画する．
-		DrawBox(_Location.X, _Location.Y, (_Location.X + GetWidth()),
-				(_Location.Y + GetHeight()), BorderColor._GetColor(), FALSE);
+		DrawBox(Dr.Location.X, Dr.Location.Y, Dr.Width, Dr.Height, BorderColor._GetColor(), FALSE);
 	}
 }
 
@@ -304,7 +167,7 @@ void			GradationFrame::_DrawThisFrame() const
 	// 反転描画しない
 	Turned					= false;
 	// 標準の描画種類を指定する
-	PositionType			= DrawType::Default;
+	Position				= DrawType::Default;
 	// 標準幅を取得する
 	GetGraphSize(_PictureHandle, &_DefaultSizeW, &_DefaultSizeH);
 	// 不透明度を255に指定する
@@ -321,20 +184,6 @@ void			GradationFrame::_DrawThisFrame() const
 }
 
 // ----------------------------------------------------
-//	PictureFrame::GetDefaultSize
-// ----------------------------------------------------
-void			PictureFrame::GetDefaultSize(int* Wth, int* Hgt) const
-{
-	// エラーチェック
-	if(!Wth || !Hgt){
-		return;
-	}
-	// 代入
-	*Wth = _DefaultSizeW;
-	*Hgt = _DefaultSizeH;
-}
-
-// ----------------------------------------------------
 //	PictureFrame::ToString
 // ----------------------------------------------------
 String			PictureFrame::ToString() const
@@ -342,16 +191,15 @@ String			PictureFrame::ToString() const
 	// 画像が読み込めているなら
 	if(_PictureHandle != -1){
 		// 普通に返却
-		return this->EdgeFrame::ToString()
+		return this->PanelFrame::ToString()
 			<< _T(", Path: \"") << Path << _T("\"")
-			<< _T(", PictureSize: {") << _DefaultSizeW << _T(", ") << _DefaultSizeH << _T("}")
 			<< _T(", Turned: ")<< Turned
 			<< _T(", Alpha: ")<< Alpha;
 	}
 	// 読み込めていないなら
 	else {
 		// エラーを示す
-		return this->EdgeFrame::ToString()
+		return this->PanelFrame::ToString()
 			<< _T(", Handle: Error");
 	}
 }
@@ -361,8 +209,8 @@ String			PictureFrame::ToString() const
 // ----------------------------------------------------
 void			PictureFrame::_SetProperties()
 {
-	// EdgeFrameのものを呼び出す
-	EdgeFrame::_SetProperties();
+	// PanelFrameのものを呼び出す
+	PanelFrame::_SetProperties();
 	// もし指定されている画像ファイルが変わっているなら
 	if(Path != _PicturePath){
 		// 現在の画像を破棄して
@@ -379,113 +227,123 @@ void			PictureFrame::_SetProperties()
 // ----------------------------------------------------
 //	PictureFrame::DrawThisFrame
 // ----------------------------------------------------
-void			PictureFrame::_DrawThisFrame() const
+void			PictureFrame::_DrawThisFrame(RectangleArea &Dr) const
 {
 	// αブレンドを有効化
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, Alpha);
+	// 描画位置を指定
+	_SetDrawPoint(Dr);
 	// 拡大描画の時
-	if(PositionType == DrawType::Stretch){
+	if(Position == DrawType::Stretch){
 		// 反転が無効なら
 		if(!Turned){
 			// 全体に広げて描画する
-			DrawExtendGraphF(_Location.X, _Location.Y,
-				_Location.X + _Width, _Location.Y + _Height, _PictureHandle, TRUE);
+			DrawExtendGraphF(Dr.Location.X, Dr.Location.Y,
+				Dr.Location.X + Dr.Width, Dr.Location.Y + Dr.Height, _PictureHandle, TRUE);
 		}
 		// 反転が有効なら
 		else {
 			// 横を反転させて描画する
-			DrawExtendGraphF(_Location.X + _Width, _Location.Y,
-				_Location.X, _Location.Y + _Height, _PictureHandle, TRUE);
+			DrawExtendGraphF(Dr.Location.X + Dr.Width, Dr.Location.Y,
+				Dr.Location.X, Dr.Location.Y + Dr.Height, _PictureHandle, TRUE);
 		}
 	}
 	// もし中央拡大描画なら
-	else if(PositionType == DrawType::Zoom){
+	else if(Position == DrawType::Zoom){
 		// 拡大割合を取得
-		double ExtendRate = min((double)_Width / _DefaultSizeW, (double)_Height / _DefaultSizeH);
+		double ExtendRate = min((double)Dr.Width / _DefaultSizeW, (double)Dr.Height / _DefaultSizeH);
 		// 中心を基準に描画
-		DrawRotaGraphF(_Location.X + _Width/2, _Location.Y + _Height/2,
+		DrawRotaGraphF(Dr.Location.X + Dr.Width/2, Dr.Location.Y + Dr.Height/2,
 			ExtendRate, 0, _PictureHandle, TRUE, Turned);
 	}
 	// 普通に描画するなら
 	else {
-		// 描画座標を取得して
-		Point Pt = _GetDrawPoint();
 		// 反転描画が無効なら
 		if(!Turned){
 			// 普通に画像を描画する
-			DrawGraphF(Pt.X, Pt.Y, _PictureHandle, TRUE);
+			DrawGraphF(Dr.Location.X, Dr.Location.Y, _PictureHandle, TRUE);
 		}
 		// 反転描画が有効なら
 		else {
 			// 反転させて画像を描画する
-			DrawTurnGraphF(Pt.X, Pt.Y, _PictureHandle, TRUE);
+			DrawTurnGraphF(Dr.Location.X, Dr.Location.Y, _PictureHandle, TRUE);
 		}
 	}
 }
 
 // ----------------------------------------------------
+//	PictureFrame::GetActualWidth
+// ----------------------------------------------------
+double			PictureFrame::_GetActualWidth() const
+{
+	return _DefaultSizeW;
+}
+
+// ----------------------------------------------------
+//	PictureFrame::GetActualWidth
+// ----------------------------------------------------
+double			PictureFrame::_GetActualHeight() const
+{
+	return _DefaultSizeH;
+}
+
+// ----------------------------------------------------
 //	PictureFrame::GetDrawPosition
 // ----------------------------------------------------
-Point			PictureFrame::_GetDrawPoint() const
+void			PictureFrame::_SetDrawPoint(RectangleArea &Dr) const
 {
-	// 返却する座標
-	double LocX = 0, LocY = 0;
 	// 基準とする位置で判定(X座標)．
-	switch(this->PositionType){
+	switch(this->Position){
 		// (X座標)一番左を基準にするなら
 		case DrawType::TopLeft:
 		case DrawType::MiddleLeft:
 		case DrawType::BottomLeft:
 			// 特に変化を加えない
-			LocX = _Location.X;
 			break;
 		// (X座標)中心を基準に表示するなら
 		case DrawType::TopCenter:
 		case DrawType::MiddleCenter:
 		case DrawType::BottomCenter:
-			// 幅/2を足す
-			LocX = _Location.X + ((_Width - _DefaultSizeW) / 2);
+			// 幅/2
+			Dr.Location.X -= Dr.Width/2;
 			break;
 		// (X座標)一番右を基準に表示するなら
 		case DrawType::TopRight:
 		case DrawType::MiddleRight:
 		case DrawType::BottomRight:
-			// 幅を足す
-			LocX = _Location.X + (_Width - _DefaultSizeW);
+			// 幅
+			Dr.Location.X -= Dr.Width;
 			break;
 		// それ以外なら何もしない
 		default:
 			break;
 	}
 	// 基準とする位置で判定(Y座標)．
-	switch(this->PositionType){
+	switch(this->Position){
 		// (Y座標)一番上を基準にするなら
 		case DrawType::TopLeft:
 		case DrawType::TopCenter:
 		case DrawType::TopRight:
 			// 特に何もしない
-			LocY = _Location.Y;
 			break;
 		// (Y座標)中心を基準に表示するなら
 		case DrawType::MiddleLeft:
 		case DrawType::MiddleCenter:
 		case DrawType::MiddleRight:
-			// 縦幅の半分を足す
-			LocY = _Location.Y + ((_Height - _DefaultSizeH) / 2);
+			// 縦幅/2
+			Dr.Location.X -= Dr.Height / 2;
 			break;
 		// (Y座標)一番下を基準に表示するなら
 		case DrawType::BottomLeft:
 		case DrawType::BottomCenter:
 		case DrawType::BottomRight:
-			// 縦幅を足す
-			LocY = _Location.Y + (_Height - _DefaultSizeH);
+			// 縦幅
+			Dr.Location.X -= Dr.Height;
 			break;
 		// それ以外なら何もしない
 		default:
 			break;
 	}
-	// 返却
-	return Point(LocX, LocY);
 }
 
 // ----------------------------------------------------
@@ -516,11 +374,12 @@ void			MovieFrame::_SetProperties()
 // ----------------------------------------------------
 //	MovieFrame::DrawThisFrame
 // ----------------------------------------------------
-void			MovieFrame::_DrawThisFrame() const
+void			MovieFrame::_DrawThisFrame(RectangleArea &Dr) const
 {
 	// αブレンドを有効化
 	SetDrawBlendMode(DX_BLENDMODE_ALPHA, Alpha);
-
+	// 描画位置を指定
+	_SetDrawPoint(Dr);
 }
 
 // ----------------------------------------------------
@@ -528,17 +387,28 @@ void			MovieFrame::_DrawThisFrame() const
 // ----------------------------------------------------
 //	TextFrame::TextFrame (Constructor)
 // ----------------------------------------------------
+				TextFrame::TextFrame()
+{
+	// 詳細版を呼ぶ
+	this->TextFrame::TextFrame(_T(""));
+}
+
+// ----------------------------------------------------
+//	TextFrame::TextFrame (Constructor)
+// ----------------------------------------------------
 				TextFrame::TextFrame(String Str)
 {
 	// 文字列をコピーする
-	Text				= Str;
-	_BackupStr			= Str;
+	Text					= Str;
+	_Property._BackupStr	= Str;
 	// 標準設定に合わせる
-	ShowType			= TextShowType::Default;
-	ShowPlace			= TextPosition::Default;
-	HeightInterval		= 0;
+	ShowType				= TextShowType::Default;
+	Position				= TextPosition::TopLeft;
+	HeightInterval			= 0;
 	// 標準で文字送りしない
-	TextAdvance			= false;
+	TextAdvance				= false;
+	// PropertyのOwnerを指定する
+	_Property._Owner		= this;
 }
 
 // ----------------------------------------------------
@@ -546,7 +416,7 @@ void			MovieFrame::_DrawThisFrame() const
 // ----------------------------------------------------
 String			TextFrame::ToString() const
 {
-	return this->EdgeFrame::ToString()
+	return this->PanelFrame::ToString()
 		<< _T(", Text: \"") << Text << _T("\"")
 		<< _T(", AdvanceShow: ") << TextAdvance
 		<< _T(", Font: {") << TextFont.ToString() << _T("}");
@@ -558,65 +428,59 @@ String			TextFrame::ToString() const
 void			TextFrame::_SetProperties()
 {
 	// 横幅縦幅を取得する
-	this->EdgeFrame::_SetProperties();
-	// ----------------------------------------------------
-	// Textプロパティが変更されていた場合
-	if(Text != _BackupStr){
-		// Timerをリセット
-		TextTimer.Reset();
+	this->PanelFrame::_SetProperties();
+	auto DrArea = GetActualArea();
+	// フォント情報を更新
+	TextFont._ReloadFontHandle();
+	// Textプロパティが変更されていた/Return表示で(横幅|フォント)が変更された場合
+	if(Text != _Property._BackupStr
+	|| (ShowType == TextShowType::Return && (DrArea.Width != _Property._Width || TextFont.IsFontChanged()))){
 		// 保存しなおす
-		_BackupStr = Text;
-		// 改行文字でSplitする
-		_DrawTextsArray = _BackupStr.Split(_T("\n"), true);
-		// もしReturn表示なら
-		if(ShowType == TextShowType::Return){
-			// なんたらかんたら
-
-
-		}
+		_Property._BackupStr = Text;
+		_Property._Width = DrArea.Width;
+		// DrawTextArrayを指定しなおす
+		_Property._SetDrawTextArray();
 	}
-	// ----------------------------------------------------
 	// もし文字送り設定で，全表示が終わっていれば
-	if(TextAdvance && TextTimer.LoopType == Timer::No
-		&& (TextTimer() / 1000) >= Text.length() - _DrawTextsArray.size()){
+	if(TextAdvance && TextTimer.LoopType == Timer::LoopType::No && TextTimer() >= _Property._TotalTextLenght){
 		// 文字送りを終了する
 		TextAdvance = false;
 	}
-	// ----------------------------------------------------
 	// Timerを更新する
 	TextTimer();
-	// フォント情報を更新
-	TextFont._ReloadFontHandle();
 }
 
 // ----------------------------------------------------
 //	TextFrame::DrawThisFrame
 // ----------------------------------------------------
-void			TextFrame::_DrawThisFrame() const
+void			TextFrame::_DrawThisFrame(RectangleArea &Dr) const
 {
 	// 描画する文字の総文字数を取得する
-	int DrawStrLenght = (TextAdvance ? TextTimer._GetValueNoReload() / 1000 : Text.length() - _DrawTextsArray.size());
+	int DrawStrLenght = (TextAdvance ? TextTimer._GetValueNoReload() : _Property._TotalTextLenght);
 	// αブレンドを有効化
 	TextFont.FontColor._AppendAlpha();
 	// 一行ずつ描画を行う
 	for(int i = 0; DrawStrLenght > 0; i++){
-		// 描画開始位置を取得する
-		auto Pt = _GetSingleLineTextDrawPoint(_DrawTextsArray[i], _DrawTextsArray.size() - 1, i);
+		// 描画する行の文字列の情報を取得する
+		auto StrDt = _Property._DrawTextsArray[i];
+		// 描画位置を取得する
+		_Property._SetTextDrawStartPoint(Dr, StrDt, i);
 		// 描画する文字列を取得する
-		String DrawStr = (_DrawTextsArray[i].length() <= DrawStrLenght ?
-			_DrawTextsArray[i] : _DrawTextsArray[i].substr(0, DrawStrLenght).c_str());
+		String DrawStr = (StrDt.Text.length() <= DrawStrLenght ? StrDt.Text :
+			StrDt.Text.substr(0, DrawStrLenght).c_str());
 		// もし縮小描画が必要なら
-		if(ShowType == TextShowType::Pack && _GetSingleLineTextWidth(_DrawTextsArray[i]) > _Width){
+		if(ShowType == TextShowType::Pack && StrDt.Width > Dr.Width){
 			// 拡大縮小して描画を行う
-			DrawExtendStringToHandle(Pt.X, Pt.Y,
-				(double)_Width / _GetSingleLineTextWidth(_DrawTextsArray[i]), 1,
+			DrawExtendStringToHandle(StrDt.DrStartPt.X, StrDt.DrStartPt.Y,
+				(double)Dr.Width / StrDt.Width, 1,
 				DrawStr, TextFont.FontColor._GetColor(),
 				TextFont._GetFontHandle(), TextFont.EdgeColor._GetColor());
 		}
 		// 縮小しないなら
 		else {
 			// 普通に文字列を描画する
-			DrawStringToHandle(Pt.X, Pt.Y, DrawStr, TextFont.FontColor._GetColor(),
+			DrawStringToHandle(StrDt.DrStartPt.X, StrDt.DrStartPt.Y,
+				DrawStr, TextFont.FontColor._GetColor(),
 				TextFont._GetFontHandle(), TextFont.EdgeColor._GetColor());
 		}
 		// 描画した文字数分残りの描画文字数を減らす
@@ -634,41 +498,112 @@ int				TextFrame::_GetSingleLineTextWidth(const String &DrStr) const
 }
 
 // ----------------------------------------------------
-//	TextFrame::GetSingleLineTextDrawXPoint
+//	TextFrame::GetSingleLineTextHeight
 // ----------------------------------------------------
-Point			TextFrame::_GetSingleLineTextDrawPoint(const String &DrStr, UINT DefLines, UINT Line) const
+int				TextFrame::_GetSingleLineTextHeight(const String &DrStr) const
+{
+	// フォント幅を返却
+	return TextFont.Size;
+}
+
+// ----------------------------------------------------
+//	TextFrame::SetDrawTextArray
+// ----------------------------------------------------
+void			TextFrame::_PropertySaved::_SetDrawTextArray()
+{
+	// 全削除する
+	_DrawTextsArray.clear();
+	// 文字列長を初期化する
+	_TotalTextLenght = 0;
+	// 改行文字でSplitする
+	auto StBaseAry = _BackupStr.Split(_T("\n"), true);
+	// 行別に分ける
+	for(auto Itr = StBaseAry.begin(); Itr != StBaseAry.end(); Itr++){
+		// 作成
+		TextFrame::_SingleLineTextData StData;
+		// もしReturn表示なら
+		if(_Owner->ShowType == TextShowType::Return){
+			// 適切な長さの幅を取得する
+			auto Len = _GetFitTextLenght(*Itr);
+			// 取得した幅から文字列を指定する
+			StData.Text = Itr->substr(0, Len).c_str();
+			// もし残りの分があるなら
+			if(Len < Itr->length()){
+				// 残りの分は次の行に持ち越す
+				Itr = StBaseAry.insert(Itr + 1, Itr->substr(Len, Itr->length()).c_str()) - 1;
+			}
+		}
+		// そうでないなら
+		else {
+			// 普通に文字列を指定する
+			StData.Text = *Itr;
+		}
+		// 文字列長を指定する
+		_TotalTextLenght += StData.Text.length();
+		// 縦横幅を指定する
+		StData.Width = _Owner->_GetSingleLineTextWidth(StData.Text);
+		StData.Height = _Owner->_GetSingleLineTextHeight(StData.Text);
+		// 描画文字一覧に追加
+		_DrawTextsArray.push_back(StData);
+	}
+}
+
+// ----------------------------------------------------
+//	TextFrame::GetFitTextLenght
+// ----------------------------------------------------
+unsigned int	TextFrame::_PropertySaved::_GetFitTextLenght(const String &Str) const
+{
+	// 引数の文字列からtstring文字列を作成
+	std::basic_string<TCHAR> tStr = Str;
+	// 返却用
+	unsigned int Lenght = tStr.length();
+	// 文字列の長さが一定幅以下になるまでループを起こす
+	while(_Owner->_GetSingleLineTextWidth(tStr.c_str()) > _Width){
+		// もし残文字長が1以下なら
+		if(Lenght <= 1){
+			// 1を返却（こうしないとバグる）
+			return 1;
+		}
+		// 文字数の長さを一文字減らす
+		tStr = tStr.substr(0, Lenght - 1);
+		// 返却用の文字列長も一文字減らす
+		Lenght--;
+	}
+	// 返却
+	return Lenght;
+}
+
+// ----------------------------------------------------
+//	TextFrame::GetTextDrawStartPoint
+// ----------------------------------------------------
+void			TextFrame::_PropertySaved::_SetTextDrawStartPoint(RectangleArea &Ar, TextFrame::_SingleLineTextData &StrDt, UINT LineNo) const
 {
 	// 一時保存用
-	double LocX = 0, LocY = 0;
-	// もしPack表示で幅が自身のフレーム幅より大きいなら
-	if(ShowType == TextShowType::Pack && _GetSingleLineTextWidth(DrStr) >= _Width){
-		// ShowPlaceに関係なくそのままX座標を指定する
-		LocX = _Location.X;
-	}
-	// そうでないなら
-	else{
+	double LocX = Ar.Location.X, LocY = Ar.Location.Y;
+	// もしPack表示でなく，または幅が自身のフレーム幅より小さいなら
+	if(_Owner->ShowType != TextShowType::Pack || StrDt.Width < Ar.Width){
 		// ShowPlaceで分ける
-		switch(ShowPlace){
+		switch(_Owner->Position){
 			// 左側描画なら
 			case TextPosition::TopLeft:
 			case TextPosition::MiddleLeft:
 			case TextPosition::BottomLeft:
-				// そのまま指定
-				LocX = _Location.X;
+				// そのまま
+				LocX += 0;
 				break;
 			// 中央描画なら
 			case TextPosition::TopCenter:
 			case TextPosition::MiddleCenter:
 			case TextPosition::BottomCenter:
 				// 幅/2を足して指定
-				LocX = _Location.X + (double)(_Width - _GetSingleLineTextWidth(DrStr)) / 2;
+				LocX += (double)(Ar.Width - StrDt.Width) / 2;
 				break;
 			// 右側描画なら
 			case TextPosition::TopRight:
 			case TextPosition::MiddleRight:
 			case TextPosition::BottomRight:
 				// 幅を足して指定
-				LocX = _Location.X + _Width - _GetSingleLineTextWidth(DrStr);
+				LocX += Ar.Width - StrDt.Width;
 				break;
 			// それ以外なら
 			default:
@@ -677,37 +612,37 @@ Point			TextFrame::_GetSingleLineTextDrawPoint(const String &DrStr, UINT DefLine
 		}
 	}
 	// ShowPlaceで分ける
-	switch(ShowPlace){
+	switch(_Owner->Position){
 		// 上側描画なら
 		case TextPosition::TopLeft:
 		case TextPosition::TopCenter:
 		case TextPosition::TopRight:
-			// Y座標 + (文字縦幅+Margin)*(行数-1)
-			LocY = _Location.Y + (TextFont.Size + HeightInterval) * (Line);
+			// Y座標そのまま
+			LocY += 0;
 			break;
 		// 中央描画なら
 		case TextPosition::MiddleLeft:
 		case TextPosition::MiddleCenter:
 		case TextPosition::MiddleRight:
-			// Y座標 + (文字縦幅+Margin)*(行数-1) + (縦幅 - (文字縦幅+Margin)*(元々の行数-1))/2
-			LocY = _Location.Y + (TextFont.Size + HeightInterval) * (Line)
-				+ (_Height - (TextFont.Size + HeightInterval) * (DefLines)) / 2;
+			// + (縦幅 - (文字縦幅+Margin)*(元々の行数-1))/2
+			LocY += (Ar.Height - (StrDt.Height + _Owner->HeightInterval) * (int)(_DrawTextsArray.size())) / 2;
 			break;
 		// 下側描画なら
 		case TextPosition::BottomLeft:
 		case TextPosition::BottomCenter:
 		case TextPosition::BottomRight:
-			// Y座標 + (文字縦幅+Margin)*(行数-1) + (縦幅 - (文字縦幅+Margin)*(元々の行数-1))
-			LocY = _Location.Y + (TextFont.Size + HeightInterval) * (Line)
-				+ (_Height - (TextFont.Size + HeightInterval) * (DefLines));
+			// + (縦幅 - (文字縦幅+Margin)*(元々の行数-1))
+			LocY += (Ar.Height - (StrDt.Height + _Owner->HeightInterval) * (int)(_DrawTextsArray.size()));
 			break;
 		// それ以外なら
 		default:
 			LocY = -1;
 			break;
 	}
-	// 返却する
-	return Point(LocX, LocY);
+	// 行数分Y座標を追加する
+	LocY += (StrDt.Height + _Owner->HeightInterval) * (LineNo);
+	// 代入する
+	StrDt.DrStartPt = Point(LocX, LocY);
 }
 
 // ----------------------------------------------------
@@ -760,18 +695,19 @@ Point			TextFrame::_GetSingleLineTextDrawPoint(const String &DrStr, UINT DefLine
 // ----------------------------------------------------
 //	Font::Font (Constructor/All)
 // ----------------------------------------------------
-				Font::Font(String FontName, int FontSize, int FontThick, int eSize, Font::FontType::_FontType FontType)
+				Font::Font(String FontName, int FontSize, int FontThick, int eSize, Font::FontType::_FontType Ty)
 {
 	// プロパティをセットする
-	Name		= FontName;
-	Size		= FontSize;
-	Thick		= FontThick;
-	Type		= FontType;
-	EdgeSize	= eSize;
+	Name			= FontName;
+	Size			= FontSize;
+	Thick			= FontThick;
+	Type			= Ty;
+	EdgeSize		= eSize;
 	// 色を初期化する
-	FontColor	= Color::White;
+	FontColor		= Color::White;
 	// ハンドルを初期化する
-	_Handle		= NULL;
+	_Handle			= -1;
+	_IsFontHandleChanged = false;
 }
 
 // ----------------------------------------------------
@@ -784,16 +720,33 @@ Point			TextFrame::_GetSingleLineTextDrawPoint(const String &DrStr, UINT DefLine
 }
 
 // ----------------------------------------------------
+//	Font::IsFontPropertyChange
+// ----------------------------------------------------
+bool			Font::IsFontChanged() const
+{
+	// もし変更されているようならtrueを返す
+	return (
+		Name != _Changed._Name ||
+		Size != _Changed._Size ||
+		Thick != _Changed._Thick ||
+		Type != _Changed._Type ||
+		EdgeSize != _Changed._EdgeSize ||
+		EdgeColor.Enable != _Changed._IsEnableEdge
+	);
+}
+
+// ----------------------------------------------------
 //	Font::ToString
 // ----------------------------------------------------
 String			Font::ToString() const
 {
 	return String()
-		<< _T("Name: \"") << _Name << _T("\"")
-		<< _T(", Size: ") << _Size
-		<< _T(", Thick: ") << _Thick
+		<< _T("Name: \"") << Name << _T("\"")
+		<< _T(", Size: ") << Size
+		<< _T(", Thick: ") << Thick
 		<< _T(", Color: ") << FontColor.ToString()
-		<< _T(", Edge: ") << EdgeColor.ToString();
+		<< _T(", Edge: ") << EdgeColor.ToString()
+		<< _T(", IsChanged: ") << IsFontChanged();
 }
 
 // ----------------------------------------------------
@@ -801,20 +754,26 @@ String			Font::ToString() const
 // ----------------------------------------------------
 void			Font::_ReloadFontHandle()
 {
+	// もしフォントハンドルが既に直前のフレームで変更されているなら
+	if(_IsFontHandleChanged){
+		// プロパティを新しい値に更新
+		_Changed._Name = Name;
+		_Changed._Size = Size;
+		_Changed._Thick = Thick;
+		_Changed._EdgeSize = EdgeSize;
+		_Changed._Type = Type;
+		_Changed._IsEnableEdge = EdgeColor.Enable;
+		// 変更フラグをfalseに
+		_IsFontHandleChanged = false;
+	}
 	// もしプロパティの中のどれかの値が変更されていたら
-	if( Name != _Name || Size != _Size || Thick != _Thick
-		|| EdgeSize != _Edge || Type != _Type || EdgeColor.Enable != _IsEnableEdge){
-		// プロパティを新しい値に更新して
-		_Name = Name;
-		_Size = Size;
-		_Thick = Thick;
-		_Edge = EdgeSize;
-		_Type = Type;
-		_IsEnableEdge = EdgeColor.Enable;
+	else if(IsFontChanged()){
 		// 現在のフォントハンドルを解放して
 		DeleteFontToHandle(_Handle);
 		// フォントハンドルを更新する
-		_Handle	= CreateFontToHandle(_Name, _Size, _Thick, _GetFontDrawType(), -1, _Edge);
+		_Handle	= CreateFontToHandle(Name, Size, Thick, _GetFontDrawType(), -1, EdgeSize);
+		// 変更フラグをtrueにする
+		_IsFontHandleChanged = true;
 	}
 }
 
@@ -835,21 +794,21 @@ inline int		Font::_GetFontDrawType() const
 	// 一時用
 	int Result = 0;
 	// 描画の種類に応じてDEFINE定義された値をセットする
-	switch(_Type){
-	case FontType::Normal:
-		Result = DX_FONTTYPE_NORMAL;
-		break;
-	case FontType::Antialiase:
-		Result = DX_FONTTYPE_ANTIALIASING;
-		break;
-	case FontType::AntialiaseHiQuality:
-		Result = DX_FONTTYPE_ANTIALIASING_8X8;
-		break;
-	default:
-		return -1;
+	switch(Type){
+		case FontType::Normal:
+			Result = DX_FONTTYPE_NORMAL;
+			break;
+		case FontType::Antialiase:
+			Result = DX_FONTTYPE_ANTIALIASING;
+			break;
+		case FontType::AntialiaseHiQuality:
+			Result = DX_FONTTYPE_ANTIALIASING_8X8;
+			break;
+		default:
+			return -1;
 	}
 	// エッジ色が指定されているならエッジも描画するように指定
-	Result += (_IsEnableEdge ? 1 : 0);
+	Result += (EdgeColor.Enable ? 1 : 0);
 	// 返却
 	return Result;
 }
@@ -995,6 +954,18 @@ String			Color::ToString() const
 }
 
 // ----------------------------------------------------
+//	Color::Compare
+// ----------------------------------------------------
+bool			Color::Compare(const Color &Target) const
+{
+	return Target.A == A
+		&& Target.R == R
+		&& Target.B == B
+		&& Target.G == G
+		&& Target.Enable == Enable;
+}
+
+// ----------------------------------------------------
 //	Color::GetColor
 // ----------------------------------------------------
 inline DWORD	Color::_GetColor() const
@@ -1013,31 +984,4 @@ inline void		Color::_AppendAlpha() const
 		// 透過度を設定する
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, A);
 	}
-}
-
-// ----------------------------------------------------
-//	Color::Compare
-// ----------------------------------------------------
-bool			Color::Compare(const Color &Target) const
-{
-	return Target.A == A
-		&& Target.R == R
-		&& Target.B == B
-		&& Target.G == G
-		&& Target.Enable == Enable;
-}
-
-// ----------------------------------------------------
-//	Color::GetColorBlends
-// ----------------------------------------------------
-std::shared_ptr<Color>
-				Color::_GetColorBlends(const Color &Target, int Parcent) const
-{
-	// 色ごとに取得する
-	int _Red	= (Target.R * Parcent)/100 + (R * (100-Parcent))/100;
-	int _Green	= (Target.G * Parcent)/100 + (G * (100-Parcent))/100;
-	int _Blue	= (Target.B * Parcent)/100 + (B * (100-Parcent))/100;
-	int _Alpha	= (Target.A * Parcent)/100 + (A * (100-Parcent))/100;
-	// 作成して返却する
-	return std::shared_ptr<Color>(new Color(_Alpha, _Red, _Green, _Blue));
 }

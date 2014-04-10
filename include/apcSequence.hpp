@@ -38,13 +38,13 @@ namespace Apocalypse
 		///		};
 		///		</code>
 		/// </example>
-		class Sequencer : public Base::__ApcBase
+		class Sequencer : public Base::_ApcBase
 		{
 		public:
 			/// <summary>
 			///		このフレームのイベントリスト．
 			/// </summary>
-			Event::__EventHandleList
+			Event::_EventHandleList
 								Events;
 			///	<summary>
 			///		Sequencerの描画順．高いほど後に描画される．

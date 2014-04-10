@@ -17,9 +17,12 @@
 	Add					= 0.0;
 	Cycle				= 0;
 	Enable				= true;
-	LoopType			= _LoopType::No;
+	LoopType			= LoopType::No;
+	TimerStop			= false;
+	UseFrameCounter		=
+	_BackupUseFlag		= false;
 	_IsReturned			= false;
-	_LastCalledFrame	= __FrameCounter::GetCount();
+	_LastCalledValue	= (UseFrameCounter ? _FrameCounter::GetCount() : GetNowCount());
 }
 
 // ----------------------------------------------------
@@ -27,9 +30,10 @@
 // ----------------------------------------------------
 void			Timer::Reset()
 {
+	// 値を初期化する
 	_Val				= 0;
 	_IsReturned			= false;
-	_LastCalledFrame	= __FrameCounter::GetCount();
+	_LastCalledValue	= (UseFrameCounter ? _FrameCounter::GetCount() : GetNowCount());
 }
 
 // ----------------------------------------------------
@@ -38,8 +42,11 @@ void			Timer::Reset()
 String			Timer::ToString() const
 {
 	// 値を返却する
-	return String() << _T("Value: ") << _Val <<
-		_T(", Add: ") << Add << _T(", Cycle: ") << Cycle;
+	return String()
+		<< _T("Value: ") << _Val
+		<< _T(", Add: ") << Add
+		<< _T(", Cycle: ") << Cycle
+		<< _T(", UseFrameCounter: ") << UseFrameCounter;
 }
 
 // ----------------------------------------------------
@@ -47,10 +54,28 @@ String			Timer::ToString() const
 // ----------------------------------------------------
 double			Timer::operator()()
 {
-	// 値を更新する
-	_TimerReload((int)(__FrameCounter::GetCount() - _LastCalledFrame));
-	// FC値を更新する
-	_LastCalledFrame = __FrameCounter::GetCount();
+	// もしUseFlagが更新されているなら
+	if(UseFrameCounter != _BackupUseFlag){
+		// Flag変更を反映させる
+		_BackupUseFlag = UseFrameCounter;
+		// カウンタを初期化する
+		_LastCalledValue = (UseFrameCounter ? _FrameCounter::GetCount() : GetNowCount());
+	}
+	// もしFrameCounterを使用するなら
+	if(UseFrameCounter){
+		// 値を更新する
+		_TimerReload((int)(_FrameCounter::GetCount() - _LastCalledValue));
+		// 最終呼び出し値を更新する
+		_LastCalledValue = _FrameCounter::GetCount();
+	}
+	// もしFrameCounterを使用しないなら
+	else {
+		int Count = GetNowCount();
+		// 値を更新する
+		_TimerReload(Count - _LastCalledValue);
+		// 最終呼び出し値を更新する
+		_LastCalledValue = Count;
+	}
 	// 値を返却する
 	return _Val;
 }
@@ -68,6 +93,11 @@ double			Timer::_GetValueNoReload() const
 // ----------------------------------------------------
 void			Timer::_TimerReload(int CallTimes)
 {
+	// Timerの更新が停止されている状況なら
+	if(TimerStop){
+		// 何もしない
+		return;
+	}
 	// もし周期が0でないなら
 	if(Cycle != 0){
 		// 必要以上に繰り返さないように最小限に抑える
@@ -77,8 +107,9 @@ void			Timer::_TimerReload(int CallTimes)
 	while(CallTimes > 0 && Enable){
 		// 繰り返し処理関連の関数を呼び出し，次の処理に進むような戻り値だったら
 		if(!_RepeatFunc()){
-			// 値を追加する
-			_Val += Add * (_IsReturned ? -1 : 1);
+			// 値を呼び出し頻度で割ったものを追加する
+			_Val += Add * (_IsReturned ? -1 : 1)
+				/ (UseFrameCounter ? ApplicationConfig::Refresh : 1000);
 		}
 		// カウントを1減少
 		CallTimes--;
@@ -90,27 +121,29 @@ void			Timer::_TimerReload(int CallTimes)
 // ----------------------------------------------------
 bool			Timer::_RepeatFunc()
 {
-	// もし周期が(上限|0)より(上|下)ならば
-	if(Cycle != 0 && (_Val / Add >= Cycle || _Val / Add < 0)){
+	// Timer内部保持値から現在の呼び出し回数を計算
+	double NowLoop = _Val * (UseFrameCounter ? ApplicationConfig::Refresh : 1000) / Add;
+	// もし値が(上限より上|0より下)ならば
+	if(Cycle != 0 && (NowLoop >= Cycle || NowLoop < 0)){
 		// RepeatTypeで処理を変える
 		switch(LoopType){
 			// 何もしないなら
-			case _LoopType::No:
+			case LoopType::No:
 				// trueを返却して値が変化しないようにする
 				return true;
 			// 繰り返すなら
-			case _LoopType::Repeat:
+			case LoopType::Repeat:
 				// 0に戻す
 				_Val = 0;
 				// trueを返却して値が変化しないようにする
 				return true;
 			// 戻すなら
-			case _LoopType::Return:
+			case LoopType::Return:
 				// 繰り返しのboolをトグルする
 				_IsReturned = !_IsReturned;
 				// 値は変化しても問題なし
 				return false;
-			case _LoopType::ReturnOnce:
+			case LoopType::ReturnOnce:
 				// IsReturnedがtrueなら値が変化しないようにする
 				return (!_IsReturned ? !(_IsReturned = !_IsReturned) : true);
 		}
@@ -159,7 +192,7 @@ void			Point::operator()(double X, double Y)
 // ----------------------------------------------------
 //	Point::operator =
 // ----------------------------------------------------
-Point&			Point::operator=(Point& Pt)
+Point&			Point::operator=(const Point& Pt)
 {
 	X = Pt.X;
 	Y = Pt.Y;
@@ -179,7 +212,7 @@ Point&			Point::operator=(double Val)
 // ----------------------------------------------------
 //	Point::operator ==
 // ----------------------------------------------------
-bool			Point::operator==(Point& Pt)
+bool			Point::operator==(const Point& Pt) const
 {
 	return ((this->X == Pt.X) && (this->Y == Pt.Y));
 }
@@ -187,9 +220,135 @@ bool			Point::operator==(Point& Pt)
 // ----------------------------------------------------
 //	Point::operator ==
 // ----------------------------------------------------
-bool			Point::operator!=(Point& Pt)
+bool			Point::operator!=(const Point& Pt) const 
 {
 	return ((this->X != Pt.X) || (this->Y != Pt.Y));
+}
+
+// ----------------------------------------------------
+//	RectangleArea
+// ----------------------------------------------------
+//	RectangleArea::RectangleArea (constructor)
+// ----------------------------------------------------
+				RectangleArea::RectangleArea()
+{
+	// 代入
+	Location(0, 0);
+	Width = 0;
+	Height = 0;
+}
+
+// ----------------------------------------------------
+//	RectangleArea::RectangleArea (constructor)
+// ----------------------------------------------------
+				RectangleArea::RectangleArea(Point &Pt, int Wid, int Hgt)
+{
+	// 代入
+	Location = Pt;
+	Width = Wid;
+	Height = Hgt;
+}
+
+// ----------------------------------------------------
+//	RectangleArea::ToString
+// ----------------------------------------------------
+String			RectangleArea::ToString() const
+{
+	return String()
+		<< _T("Location: ") << Location.ToString()
+		<< _T(", Width") << Width
+		<< _T(", Height") << Height;
+}
+
+// ----------------------------------------------------
+//	MarginRectangle
+// ----------------------------------------------------
+//	MarginRectangle::Auto (Global)
+// ----------------------------------------------------
+const MarginRectangle::_Property
+				MarginRectangle::Auto(true);
+
+// ----------------------------------------------------
+//	MarginRectangle::MarginRectangle (constructor)
+// ----------------------------------------------------
+				MarginRectangle::MarginRectangle(){}
+
+// ----------------------------------------------------
+//	MarginRectangle::MarginRectangle (constructor)
+// ----------------------------------------------------
+				MarginRectangle::MarginRectangle(double Left, double Right, double Top, double Bottom)
+{
+	// operator()を呼び出す
+	(*this)(Left, Right, Top, Bottom);
+}
+
+// ----------------------------------------------------
+//	MarginRectangle::Percentage
+// ----------------------------------------------------
+MarginRectangle::_Property
+				MarginRectangle::Percentage(double Per)
+{
+	// 割合指定して返却する
+	_Property Prop;
+	Prop.Auto = false;
+	Prop.Percent = true;
+	Prop = Per;
+	return Prop;
+}
+
+// ----------------------------------------------------
+//	MarginRectangle::Compare
+// ----------------------------------------------------
+bool			MarginRectangle::Compare(const MarginRectangle &Rc) const
+{
+	// 比較して返却
+	return Left == Rc.Left
+		&& Right == Rc.Right
+		&& Top == Rc.Top
+		&& Bottom == Rc.Bottom;
+}
+
+// ----------------------------------------------------
+//	MarginRectangle::CalcrationArea
+// ----------------------------------------------------
+RectangleArea	MarginRectangle::CalclationArea(const RectangleArea &ArBase) const
+{
+	// 返却用の領域
+	RectangleArea Rect;
+	// ------------------------------------------------
+	// それぞれの位置の値を指定する
+	Rect.Location.X = ArBase.Location.X + Left.CalclateValue(ArBase.Width);
+	Rect.Location.Y = ArBase.Location.Y + Top.CalclateValue(ArBase.Height);
+	Rect.Width		= Rect.Location.X + Rect.Width - Right.CalclateValue(ArBase.Width);
+	Rect.Height		= Rect.Location.X + Rect.Height- Bottom.CalclateValue(ArBase.Height);
+	// 返却
+	return Rect;
+}
+// ----------------------------------------------------
+//	MarginRectangle::ToString
+// ----------------------------------------------------
+String			MarginRectangle::ToString() const
+{
+	return String()
+		<< _T("Left: ")		<< Left.ToString()
+		<< _T(", Right: ")	<< Right.ToString()
+		<< _T(", Top: ")	<< Top.ToString()
+		<< _T(", Bottom: ")	<< Bottom.ToString();
+}
+
+// ----------------------------------------------------
+//	MarginRectangle::operator()
+// ----------------------------------------------------
+MarginRectangle&
+				MarginRectangle::operator()(double Left, double Right, double Top, double Bottom)
+{
+	// 各値にそれぞれ指定する
+	this->Left		= Left;
+	this->Right		= Right;
+	this->Top		= Top;
+	this->Bottom	= Bottom;
+	// 自身を返却する
+	return *this;
 }
 
 // ----------------------------------------------------
@@ -320,6 +479,24 @@ String&			String::operator=(LPCTSTR Val)
 	assign(Val);
 	// 自身を返却
 	return *this;
+}
+
+// ----------------------------------------------------
+//	String::operator ==
+// ----------------------------------------------------
+bool			String::operator==(String &Str) const
+{
+	// Compareして結果を返す
+	return compare(Str.c_str()) == 0;
+}
+
+// ----------------------------------------------------
+//	String::operator !=
+// ----------------------------------------------------
+bool			String::operator!=(String &Str) const
+{
+	// Compareして結果を返す
+	return compare(Str.c_str()) != 0;
 }
 
 // ----------------------------------------------------

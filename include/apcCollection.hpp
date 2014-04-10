@@ -25,8 +25,8 @@ namespace Apocalypse
 	// ------------------------------------------------
 	namespace Draw
 	{
-		class __FrameBase;
-		class EdgeFrame;
+		class _FrameBase;
+		class PanelFrame;
 	}
 	namespace Sequence
 	{
@@ -45,27 +45,27 @@ namespace Apocalypse
 		///		<para>このクラスによってフレームは自動収集・描画されます．</para>
 		///		<para>このクラスはsingletonです．</para>
 		/// </remarks>
-		class __FrameCollection :  public Template::__Singleton<__FrameCollection>
+		class _FrameCollection :  public Template::_Singleton<_FrameCollection>
 		{
 			/// <summary>
 			///		Singletonクラスは全てのメンバにアクセス可能です．
 			/// </summary>
-			friend class		Template::__Singleton<__FrameCollection>;
+			friend class		Template::_Singleton<_FrameCollection>;
 		public:
 			///	<summary>
 			///		デストラクタ
 			///	</summary>
-			virtual				~__FrameCollection();
+			virtual				~_FrameCollection();
 			/// <summary>
-			///		__FrameBaseのshared_ptrをtypedefで省略
+			///		_FrameBaseのshared_ptrをtypedefで省略
 			/// </summary>
-			typedef				Draw::__FrameBase*		FramePtr;
+			typedef				Draw::_FrameBase*		FramePtr;
 			/// <summary>
-			///		__FrameBaseのshared_ptrを管理するvectorをtypedefで省略
+			///		_FrameBaseのshared_ptrを管理するvectorをtypedefで省略
 			/// </summary>
 			typedef				std::vector<FramePtr>*	FrameListPtr;
 			/// <summary>
-			///		const __FrameCollection::FramePtr&を引数にとりboolを返却するfunctionをtypedefで省略
+			///		const _FrameCollection::FramePtr&を引数にとりboolを返却するfunctionをtypedefで省略
 			/// </summary>
 			typedef				boost::function<bool(const FramePtr&)>	CheckFunc;
 			///	<summary>
@@ -74,7 +74,7 @@ namespace Apocalypse
 			/// <param name = "Target">
 			///		追加する対象のフレーム．
 			/// </param>
-			void				Insert(Draw::__FrameBase *Target);
+			void				Insert(Draw::_FrameBase *Target);
 			///	<summary>
 			///		現在一覧に登録されているフレームをvectorコンテナで返却する．
 			///	</summary>
@@ -83,7 +83,7 @@ namespace Apocalypse
 			///		現在一覧に登録されているフレームのうち，条件式と一致する項目をvectorコンテナで返却する．
 			///	</summary>
 			/// <param name = "Func">
-			///		const __FrameCollection::FramePtrを引数にとりboolを返す関数．true返却で一致と判断する．
+			///		const _FrameCollection::FramePtrを引数にとりboolを返す関数．true返却で一致と判断する．
 			/// </param>
 			FrameListPtr		Enum(CheckFunc Func) const;
 			///	<summary>
@@ -92,12 +92,12 @@ namespace Apocalypse
 			/// <param name = "Target">
 			///		除外する対象のフレーム．NULLを指定した場合すべて削除される．
 			/// </param>
-			void				Erase(const Draw::__FrameBase *Target);
+			void				Erase(const Draw::_FrameBase *Target);
 			///	<summary>
 			///		指定した条件と一致するフレームのうち始めの一つを取得する．
 			///	</summary>
 			/// <param name = "Func">
-			///		const __FrameCollection::FramePtrを引数にとりboolを返す関数．true返却で一致と判断する．
+			///		const _FrameCollection::FramePtrを引数にとりboolを返す関数．true返却で一致と判断する．
 			/// </param>
 			FramePtr			Find(CheckFunc Func) const;
 			///	<summary>
@@ -115,19 +115,19 @@ namespace Apocalypse
 			///	<summary>
 			///		最上位フレームを取得する
 			///	</summary>
-			Draw::EdgeFrame*	GetTopParent() const;
+			Draw::PanelFrame*	GetTopParent() const;
 		private:
 			///	<summary>
 			///		コンストラクタ
 			///	</summary>
-								__FrameCollection();
+								_FrameCollection();
 			///	<summary>
 			///		ソート用のクラス．setコンテナ内の要素をソートする用に使用する．
 			///	</summary>
 			class				_Sort
 			{
 			public:
-				bool			operator()(const Draw::__FrameBase *A, const Draw::__FrameBase *B);
+				bool			operator()(const Draw::_FrameBase *A, const Draw::_FrameBase *B);
 			};
 			/// <summary>
 			///		親フレームのZ座標の合計値を指定する関数．
@@ -135,22 +135,22 @@ namespace Apocalypse
 			/// <param name = "Target">
 			///		Z座標を指定する対象のフレーム．
 			/// </param>
-			void				_SetZindex(Draw::__FrameBase *Target) const;
+			void				_SetZindex(Draw::_FrameBase *Target) const;
 			///	<summary>
 			///		親フレームに無効フレームがあるかどうかを調べる．
 			///	</summary>
 			/// <param name = "Target">
 			///		Enableを調べる対象のフレーム．
 			/// </param>
-			bool				_EnableParent(const Draw::__FrameBase *Target) const;
+			bool				_EnableParent(const Draw::_FrameBase *Target) const;
 			///	<summary>
 			///		最上位のフレーム．
 			///	</summary>
-			Draw::EdgeFrame*	_TopParent;
+			Draw::PanelFrame*	_TopParent;
 			///	<summary>
 			///		フレームを管理するためのコンテナ
 			///	</summary>
-			std::list<Draw::__FrameBase*>
+			std::list<Draw::_FrameBase*>
 								_Container;
 		};
 
@@ -161,17 +161,17 @@ namespace Apocalypse
 		///		<para>このクラスによってシーケンスは管理されます．</para>
 		///		<para>このクラスはsingletonです．</para>
 		/// </remarks>
-		class __SequenceCollection : public Template::__Singleton<__SequenceCollection>
+		class _SequenceCollection : public Template::_Singleton<_SequenceCollection>
 		{
 			/// <summary>
 			///		Singletonクラスは全てのメンバにアクセス可能です．
 			/// </summary>
-			friend class		Template::__Singleton<__SequenceCollection>;
+			friend class		Template::_Singleton<_SequenceCollection>;
 		public:
 			///	<summary>
 			///		デストラクタ
 			///	</summary>
-			virtual				~__SequenceCollection();
+			virtual				~_SequenceCollection();
 			///	<summary>
 			///		指定したシーケンスを末尾に追加する．
 			///	</summary>
@@ -193,51 +193,12 @@ namespace Apocalypse
 			///	<summary>
 			///		コンストラクタ
 			///	</summary>
-								__SequenceCollection(){}
+								_SequenceCollection(){}
 			///	<summary>
 			///		シーケンスを管理するための単方向コンテナ．
 			///	</summary>
 			std::list<std::shared_ptr<Sequence::Sequencer>>
 								_Container;
-		};
-
-		///	<summary>
-		///		起動してからのフレーム数を取得する．単純増加するカウンタとしても使用可能．
-		///	</summary>
-		/// <remarks>
-		///		このクラスはsingletonです．
-		/// </remarks>
-		/// <example>
-		///		使用例: 
-		///		<code>
-		///		// 現在のカウンタ値を取得する
-		///		int Counter = FrameCounter::GetCount();
-		///		</code>
-		/// </example>
-		class __FrameCounter : public Template::__Singleton<__FrameCounter>
-		{
-			/// <summary>
-			///		Singletonクラスは全てのメンバにアクセス可能です．
-			/// </summary>
-			friend class		Template::__Singleton<__FrameCounter>;
-		public:
-			/// <summary>
-			///		カウント数を取得する関数．
-			/// </summary>
-			static double		GetCount();
-			/// <summary>
-			///		カウント数を増加させる関数．1フレームに一度だけ呼ぶ．
-			/// </summary>
-			void				_CountAdd();
-		private:
-			/// <summary>
-			///		Countructor．
-			/// </summary>
-								__FrameCounter();
-			/// <summary>
-			///		カウント数を保存しておく変数．
-			/// </summary>
-			double				_Value;
 		};
 	}
 }

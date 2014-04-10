@@ -31,7 +31,7 @@ namespace Apocalypse
 		///		Bgm->Play();	// 再生する
 		///		</code>
 		/// </example>
-		class SoundObject : public Base::__ApcBase
+		class SoundObject : public Base::_ApcBase
 		{
 		public:
 			/// <summary>
@@ -50,7 +50,7 @@ namespace Apocalypse
 			/// <remarks>
 			///		0（無音）～255（最大）までの間で指定します．
 			/// </remarks>
-			UINT				Volume;
+			unsigned int		Volume;
 			/// <summary>
 			///		再生時のパンを指定する．
 			/// </summary>

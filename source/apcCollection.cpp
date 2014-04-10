@@ -10,21 +10,18 @@
 // ----------------------------------------------------
 //	FrameCollection::FrameCollection (Constructor)
 // ----------------------------------------------------
-				__FrameCollection::__FrameCollection()
+				_FrameCollection::_FrameCollection()
 {
 	// 最上位フレームを作成する
-	_TopParent = new EdgeFrame();
-	// 横幅と縦幅を指定する
-	_TopParent->Width	= ApplicationConfig::Width;
-	_TopParent->Height	= ApplicationConfig::Height;
-	// ％指定を無効にする．
-	_TopParent->SpecifyWithParcent = false;
+	_TopParent = new PanelFrame();
+	// Marginを指定する
+	_TopParent->Margin(0, 0, 0, 0);
 }
 
 // ----------------------------------------------------
 //	FrameCollection::~FrameCollection (Destructor)
 // ----------------------------------------------------
-				__FrameCollection::~__FrameCollection()
+				_FrameCollection::~_FrameCollection()
 {
 	// 全削除
 	_Container.clear();
@@ -33,7 +30,7 @@
 // ----------------------------------------------------
 //	FrameCollection::Insert
 // ----------------------------------------------------
-void			__FrameCollection::Insert(__FrameBase *Target)
+void			_FrameCollection::Insert(_FrameBase *Target)
 {
 	// もしNULLフレームが渡されたら
 	if(!Target){
@@ -47,8 +44,8 @@ void			__FrameCollection::Insert(__FrameBase *Target)
 // ----------------------------------------------------
 //	FrameCollection::Enum
 // ----------------------------------------------------
-__FrameCollection::FrameListPtr	
-				__FrameCollection::Enum() const
+_FrameCollection::FrameListPtr	
+				_FrameCollection::Enum() const
 {
 	// 引数あり版を呼び出す
 	return Enum([](const FramePtr){ return true; });
@@ -57,8 +54,8 @@ __FrameCollection::FrameListPtr
 // ----------------------------------------------------
 //	FrameCollection::Enum
 // ----------------------------------------------------
-__FrameCollection::FrameListPtr	
-				__FrameCollection::Enum(__FrameCollection::CheckFunc Func) const
+_FrameCollection::FrameListPtr	
+				_FrameCollection::Enum(_FrameCollection::CheckFunc Func) const
 {
 	// 返却する一覧を用意
 	auto FVector = new std::vector<FramePtr>();
@@ -91,7 +88,7 @@ __FrameCollection::FrameListPtr
 // ----------------------------------------------------
 //	FrameCollection::Erase
 // ----------------------------------------------------
-void			__FrameCollection::Erase(const __FrameBase *Target)
+void			_FrameCollection::Erase(const _FrameBase *Target)
 {
 	// もし引数に無効ポインタまたは最上位フレームを渡されたら
 	if(!Target || Target == _TopParent){
@@ -128,8 +125,8 @@ void			__FrameCollection::Erase(const __FrameBase *Target)
 // ----------------------------------------------------
 //	FrameCollection::Find
 // ----------------------------------------------------
-__FrameCollection::FramePtr
-				__FrameCollection::Find(__FrameCollection::CheckFunc Func) const
+_FrameCollection::FramePtr
+				_FrameCollection::Find(_FrameCollection::CheckFunc Func) const
 {
 	// 取得
 	auto Vector = *Enum(Func);
@@ -142,12 +139,12 @@ __FrameCollection::FramePtr
 // ----------------------------------------------------
 //	FrameCollection::Sort
 // ----------------------------------------------------
-void			__FrameCollection::Sort()
+void			_FrameCollection::Sort()
 {
 	// 全フレームに対して，DrawOrderを適切なものに変更する
 	for(auto Iter = _Container.begin(); Iter != _Container.end(); Iter++){
 		// 親を考慮して並び替える
-		__FrameCollection::GetInstance()._SetZindex(*Iter);
+		_FrameCollection::GetInstance()._SetZindex(*Iter);
 	}
 	// 並び順を変える
 	_Container.sort(_Sort());
@@ -156,7 +153,7 @@ void			__FrameCollection::Sort()
 // ----------------------------------------------------
 //	FrameCollection::Clear
 // ----------------------------------------------------
-void			__FrameCollection::Clear()
+void			_FrameCollection::Clear()
 {
 	// 全て削除する．
 	_Container.clear();
@@ -165,7 +162,7 @@ void			__FrameCollection::Clear()
 // ----------------------------------------------------
 //	FrameCollection::Sort
 // ----------------------------------------------------
-bool			__FrameCollection::_Sort::operator()(const __FrameBase *A, const __FrameBase *B)
+bool			_FrameCollection::_Sort::operator()(const _FrameBase *A, const _FrameBase *B)
 {
 	// Z座標を比較する．
 	return A->DrawOrder < B->DrawOrder;
@@ -174,7 +171,7 @@ bool			__FrameCollection::_Sort::operator()(const __FrameBase *A, const __FrameB
 // ----------------------------------------------------
 //	FrameCollection::DrawAll
 // ----------------------------------------------------
-void			__FrameCollection::DrawAll() const
+void			_FrameCollection::DrawAll() const
 {
 	// 一覧を取得する(Visibleがtrueかつ親にEnable=falseが存在しない)
 	auto List = Enum([this](const FramePtr &Val){ return (Val->Visible && _EnableParent(Val)); });
@@ -182,24 +179,28 @@ void			__FrameCollection::DrawAll() const
 	BOOST_FOREACH(auto Ptr, *List){
 		// 横幅・縦幅の標準値を取得
   		Ptr->_SetProperties();
-		// 位置をリセットする
-		Ptr->_SetDefaultPosition();
 		// 描画モードを指定する
 		SetDrawMode(Ptr->DrawMode);
+		// 描画領域を取得する
+		RectangleArea Rect = Ptr->GetActualArea();
 		// 枠内領域に描画する設定なら有効にする
 		if(Ptr->DrawFramework){
-			SetDrawArea(Ptr->_Location.X, Ptr->_Location.Y,
-				Ptr->_Location.X + Ptr->_Width, Ptr->_Location.Y + Ptr->_Height);
+			SetDrawArea(Rect.Location.X, Rect.Location.Y,
+				Rect.Location.X + Rect.Width, Rect.Location.Y + Rect.Height);
+		}
+		// 全領域に描画する設定なら初期化する
+		else {
+			SetDrawAreaFull();
 		}
 		// 取得したフレームの描画関数を実行する
-		Ptr->_DrawThisFrame();
+		Ptr->_DrawThisFrame(Rect);
 	}
 }
 
 // ----------------------------------------------------
 //	FrameCollection::GetTopParent
 // ----------------------------------------------------
-EdgeFrame*		__FrameCollection::GetTopParent() const
+PanelFrame*		_FrameCollection::GetTopParent() const
 {
 	return _TopParent;
 }
@@ -207,7 +208,7 @@ EdgeFrame*		__FrameCollection::GetTopParent() const
 // ----------------------------------------------------
 //	FrameBase::SetZindex
 // ----------------------------------------------------
-void			__FrameCollection::_SetZindex(__FrameBase *Tgt) const
+void			_FrameCollection::_SetZindex(_FrameBase *Tgt) const
 {
 	// 加算値（仮置き）
 	const int FRAME_IN_SEQUENCER_MAX = 0xFF;
@@ -224,7 +225,7 @@ void			__FrameCollection::_SetZindex(__FrameBase *Tgt) const
 	// もし自身の親がTopParentなら
 	if(Tgt->Parent == _TopParent){
 		// SequencerのDrawOrderを最初に加味する
-		Tgt->DrawOrder = __SequenceCollection::GetInstance().Top()->_DrawOrder * FRAME_IN_SEQUENCER_MAX;
+		Tgt->DrawOrder = _SequenceCollection::GetInstance().Top()->_DrawOrder * FRAME_IN_SEQUENCER_MAX;
 	}
 	// 自身の親フレームのZ座標を足して返却
 	Tgt->DrawOrder += (Tgt->Parent ? Tgt->Parent->DrawOrder : 0) + 1;
@@ -233,7 +234,7 @@ void			__FrameCollection::_SetZindex(__FrameBase *Tgt) const
 // ----------------------------------------------------
 //	FrameCollection::EnableParent
 // ----------------------------------------------------
-bool			__FrameCollection::_EnableParent(const __FrameBase *Tgt) const
+bool			_FrameCollection::_EnableParent(const _FrameBase *Tgt) const
 {
 	// もし無効なら
 	if(!Tgt || !Tgt->Enable){
@@ -249,7 +250,7 @@ bool			__FrameCollection::_EnableParent(const __FrameBase *Tgt) const
 // ----------------------------------------------------
 //	SequenceCollection::~SequenceCollection (Destructor)
 // ----------------------------------------------------
-				__SequenceCollection::~__SequenceCollection()
+				_SequenceCollection::~_SequenceCollection()
 {
 	// 全削除
 	_Container.clear();
@@ -258,7 +259,7 @@ bool			__FrameCollection::_EnableParent(const __FrameBase *Tgt) const
 // ----------------------------------------------------
 //	SequenceCollection::Add
 // ----------------------------------------------------
-void			__SequenceCollection::Add(const std::shared_ptr<Sequencer> &Target)
+void			_SequenceCollection::Add(const std::shared_ptr<Sequencer> &Target)
 {
 	// もしNULLなら
 	if(!Target){
@@ -273,7 +274,7 @@ void			__SequenceCollection::Add(const std::shared_ptr<Sequencer> &Target)
 //	SequenceCollection::Delete
 // ----------------------------------------------------
 std::shared_ptr<Sequencer>
-				__SequenceCollection::Top() const
+				_SequenceCollection::Top() const
 {
 	// もしスタックが空なら
 	if(_Container.empty()){
@@ -287,7 +288,7 @@ std::shared_ptr<Sequencer>
 // ----------------------------------------------------
 //	SequenceCollection::Delete
 // ----------------------------------------------------
-void			__SequenceCollection::Delete(const Sequencer *Target)
+void			_SequenceCollection::Delete(const Sequencer *Target)
 {
 	// 保存用
 	std::shared_ptr<Sequencer> TopFrame;
@@ -311,39 +312,8 @@ void			__SequenceCollection::Delete(const Sequencer *Target)
 // ----------------------------------------------------
 //	SequenceCollection::Size
 // ----------------------------------------------------
-unsigned int	__SequenceCollection::Size() const
+unsigned int	_SequenceCollection::Size() const
 {
 	// 個数を返却
 	return _Container.size();
-}
-
-// ----------------------------------------------------
-//	FrameCounter
-// ----------------------------------------------------
-//	FrameCounter::FrameCounter
-// ----------------------------------------------------
-				__FrameCounter::__FrameCounter()
-{
-	// 値を初期化する
-	_Value = 0;
-	// 終了
-	return;
-}
-
-// ----------------------------------------------------
-//	FrameCounter::GetCount
-// ----------------------------------------------------
-double			__FrameCounter::GetCount()
-{
-	// 返却する
-	return GetInstance()._Value;
-}
-
-// ----------------------------------------------------
-//	FrameCounter::CountAdd
-// ----------------------------------------------------
-void			__FrameCounter::_CountAdd()
-{
-	// 値を1増加する
-	_Value++;
 }

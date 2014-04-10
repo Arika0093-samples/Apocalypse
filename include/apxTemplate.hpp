@@ -26,7 +26,7 @@ namespace Apocalypse
 		///		<para>Singletonクラスを実装する際に使用するクラスのテンプレート．</para>
 		///		<para>継承する形で使用する．</para>
 		///	</summary>
-		class __Singleton : public virtual Base::__ApcInside
+		class _Singleton : public virtual Base::_ApcInside
 		{
 		public:
 			/// <summary>
@@ -41,19 +41,19 @@ namespace Apocalypse
 			/// <summary>
 			///		コンストラクタ
 			/// </summary>
-								__Singleton(){}
+								_Singleton(){}
 			/// <summary>
 			///		デストラクタ
 			/// </summary>
-			virtual				~__Singleton(){}
+			virtual				~_Singleton(){}
 			/// <summary>
 			///		コピーコンストラクタ
 			/// </summary>
-								__Singleton(const __Singleton&){}
+								_Singleton(const _Singleton&){}
 			/// <summary>
 			///		代入演算子
 			/// </summary>
-			void*				operator=(const __Singleton&){}
+			void*				operator=(const _Singleton&){}
 		};
 	}
 }

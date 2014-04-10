@@ -26,7 +26,7 @@ namespace Apocalypse
 		// ------------------------------------------------
 		//	Front Declaration
 		// ------------------------------------------------
-		class __KeysData;
+		class _KeysData;
 
 		///	<summary>
 		///		キー情報を管理する用のクラス．
@@ -47,12 +47,12 @@ namespace Apocalypse
 		///		}
 		///		</code>
 		/// </example>
-		class KeyBoard : public Template::__Singleton<KeyBoard>
+		class KeyBoard : public Template::_Singleton<KeyBoard>
 		{
 			/// <summary>
 			///		Singletonクラスは全てのメンバにアクセス可能です．
 			/// </summary>
-			friend class		Template::__Singleton<KeyBoard>;
+			friend class		Template::_Singleton<KeyBoard>;
 		public:
 			/// <summary>
 			///		何かのキー/マウスが押されているかどうかの情報を取得する．
@@ -65,21 +65,21 @@ namespace Apocalypse
 			/// <param name = "TargetKey">
 			///		取得する対象のキー．KeyListで定義された値を使用して下さい．
 			/// </param>
-			static UINT			Pushing(const __KeysData &TargetKey);
+			static UINT			Pushing(const _KeysData &TargetKey);
 			/// <summary>
 			///		指定したキーがこのフレームで初めて押されたかどうかの情報を取得する．
 			/// </summary>
 			/// <param name = "TargetKey">
 			///		取得する対象のキー．KeyListで定義された値を使用して下さい．
 			/// </param>
-			static bool			PushStart(const __KeysData &TargetKey);
+			static bool			PushStart(const _KeysData &TargetKey);
 			/// <summary>
 			///		指定したキーがこのフレームで初めて離されたかどうかの情報を取得する．
 			/// </summary>
 			/// <param name = "TargetKey">
 			///		取得する対象のキー．KeyListで定義された値を使用して下さい．
 			/// </param>
-			static bool			OutStart(const __KeysData &TargetKey);
+			static bool			OutStart(const _KeysData &TargetKey);
 			/// <summary>
 			///		キーの押されている状態を文字列で返却する．
 			/// </summary>
@@ -119,12 +119,12 @@ namespace Apocalypse
 		///		}
 		///		</code>
 		/// </example>
-		class Mouse : public Template::__Singleton<Mouse>
+		class Mouse : public Template::_Singleton<Mouse>
 		{
 			/// <summary>
 			///		Singletonクラスは全てのメンバにアクセス可能です．
 			/// </summary>
-			friend class		Template::__Singleton<Mouse>;
+			friend class		Template::_Singleton<Mouse>;
 		public:
 			/// <summary>
 			///		<para>マウスが押されているかどうかの情報を取得する．</para>
@@ -210,22 +210,22 @@ namespace Apocalypse
 		/// <remarks>
 		///		キーの状態を取得する関数の引数に使用します．
 		/// </remarks>
-		class __KeysData : public virtual Base::__ApcBase
+		class _KeysData : public virtual Base::_ApcBase
 		{
 		public:
 			///	<summary>
-			///		初期キーとして特に何も持たない__KeysDataクラスのコンストラクタ．
+			///		初期キーとして特に何も持たない_KeysDataクラスのコンストラクタ．
 			///	</summary>
-								__KeysData();
+								_KeysData();
 			///	<summary>
-			///		初期キーとして引数に指定されたキーを持つ__KeysDataクラスのコンストラクタ．
+			///		初期キーとして引数に指定されたキーを持つ_KeysDataクラスのコンストラクタ．
 			///	</summary>
 			///	<param name = "FstKey">
 			///		初期キー．
 			///	</param>
-								__KeysData(int FstKey);
+								_KeysData(int FstKey);
 			///	<summary>
-			///		初期キーとして引数に指定された2つのキーを持つ__KeysDataクラスのコンストラクタ．
+			///		初期キーとして引数に指定された2つのキーを持つ_KeysDataクラスのコンストラクタ．
 			///	</summary>
 			///	<param name = "FstKey_1">
 			///		初期キーその1．
@@ -233,56 +233,56 @@ namespace Apocalypse
 			///	<param name = "FstKey_2">
 			///		初期キーその2．
 			///	</param>
-								__KeysData(int FstKey_1, int FstKey_2);
+								_KeysData(int FstKey_1, int FstKey_2);
 			///	<summary>
-			///		初期キーとして引数に指定された複数のキーを持つ__KeysDataクラスのコンストラクタ．
+			///		初期キーとして引数に指定された複数のキーを持つ_KeysDataクラスのコンストラクタ．
 			///	</summary>
-			///	<param name = "Fst__KeysData">
+			///	<param name = "Fst_KeysData">
 			///		複数の初期キー．
 			///	</param>
 			///	<param name = "Size">
 			///		登録するキーの個数．
 			///	</param>
-								__KeysData(int FstKey[], size_t Size);
+								_KeysData(int FstKey[], size_t Size);
 			///	<summary>
 			///		デストラクタ．
 			///	</summary>
-								~__KeysData(){}
+								~_KeysData(){}
 			///	<summary>
 			///		2つのキーの状態を比較する関数．
 			///	</summary>
-			///	<param name = "__KeysDataList">
+			///	<param name = "_KeysDataList">
 			///		比較するキーの状態クラス．
 			///	</param>
-			bool				Compare(const __KeysData &__KeysDataList) const;
+			bool				Compare(const _KeysData &_KeysDataList) const;
 			///	<summary>
 			///		キー追加のoperator．
 			///	</summary>
-			///	<param name = "__KeysDataList">
+			///	<param name = "_KeysDataList">
 			///		追加するキーの状態クラス．
 			///	</param>
-			__KeysData&			operator+(const __KeysData &__KeysDataList) const;
+			_KeysData&			operator+(const _KeysData &_KeysDataList) const;
 			///	<summary>
 			///		キー削除のoperator．
 			///	</summary>
-			///	<param name = "__KeysDataList">
+			///	<param name = "_KeysDataList">
 			///		削除するキーの状態クラス．
 			///	</param>
-			__KeysData&			operator-(const __KeysData &__KeysDataList) const;
+			_KeysData&			operator-(const _KeysData &_KeysDataList) const;
 			///	<summary>
 			///		キー追加のoperator．
 			///	</summary>
-			///	<param name = "__KeysDataList">
+			///	<param name = "_KeysDataList">
 			///		追加するキーの状態クラス．
 			///	</param>
-			__KeysData&			operator+=(const __KeysData &__KeysDataList);
+			_KeysData&			operator+=(const _KeysData &_KeysDataList);
 			///	<summary>
 			///		キー削除のoperator．
 			///	</summary>
-			///	<param name = "__KeysDataList">
+			///	<param name = "_KeysDataList">
 			///		削除するキーの状態クラス．
 			///	</param>
-			__KeysData&			operator-=(const __KeysData &__KeysDataList);
+			_KeysData&			operator-=(const _KeysData &_KeysDataList);
 			///	<summary>
 			///		比較のoperator．
 			///	</summary>
@@ -293,10 +293,10 @@ namespace Apocalypse
 			///	<summary>
 			///		比較のoperator．
 			///	</summary>
-			///	<param name = "__KeysDataList">
+			///	<param name = "_KeysDataList">
 			///		比較するキーの状態クラス．
 			///	</param>
-			bool				operator==(const __KeysData &__KeysDataList) const;
+			bool				operator==(const _KeysData &_KeysDataList) const;
 			///	<summary>
 			///		<para>判定関数で全てが押されてる場合を判定するかどうか．</para>
 			///		<para>標準ではfalse（どれか一つが押されている場合を判定する）．</para>
@@ -320,205 +320,205 @@ namespace Apocalypse
 		///	<summary>
 		///		キーボードの対応数字を列挙したクラス．
 		///	</summary>
-		class Key : public virtual Base::__ApcEnumeration
+		class Key : public virtual Base::_ApcEnumeration
 		{
 		public:
 			///	<summary>
 			///		キーボードのAキー．
 			///	</summary>
-			static const __KeysData	A;
+			static const _KeysData	A;
 			///	<summary>
 			///		キーボードのBキー．
 			///	</summary>
-			static const __KeysData	B;
+			static const _KeysData	B;
 			///	<summary>
 			///		キーボードのCキー．
 			///	</summary>
-			static const __KeysData	C;
+			static const _KeysData	C;
 			///	<summary>
 			///		キーボードのDキー．
 			///	</summary>
-			static const __KeysData	D;
+			static const _KeysData	D;
 			///	<summary>
 			///		キーボードのEキー．
 			///	</summary>
-			static const __KeysData	E;
+			static const _KeysData	E;
 			///	<summary>
 			///		キーボードのFキー．
 			///	</summary>
-			static const __KeysData	F;
+			static const _KeysData	F;
 			///	<summary>
 			///		キーボードのGキー．
 			///	</summary>
-			static const __KeysData	G;
+			static const _KeysData	G;
 			///	<summary>
 			///		キーボードのHキー．
 			///	</summary>
-			static const __KeysData	H;
+			static const _KeysData	H;
 			///	<summary>
 			///		キーボードのIキー．
 			///	</summary>
-			static const __KeysData	I;
+			static const _KeysData	I;
 			///	<summary>
 			///		キーボードのJキー．
 			///	</summary>
-			static const __KeysData	J;
+			static const _KeysData	J;
 			///	<summary>
 			///		キーボードのKキー．
 			///	</summary>
-			static const __KeysData	K;
+			static const _KeysData	K;
 			///	<summary>
 			///		キーボードのLキー．
 			///	</summary>
-			static const __KeysData	L;
+			static const _KeysData	L;
 			///	<summary>
 			///		キーボードのMキー．
 			///	</summary>
-			static const __KeysData	M;
+			static const _KeysData	M;
 			///	<summary>
 			///		キーボードのNキー．
 			///	</summary>
-			static const __KeysData	N;
+			static const _KeysData	N;
 			///	<summary>
 			///		キーボードのOキー．
 			///	</summary>
-			static const __KeysData	O;
+			static const _KeysData	O;
 			///	<summary>
 			///		キーボードのPキー．
 			///	</summary>
-			static const __KeysData	P;
+			static const _KeysData	P;
 			///	<summary>
 			///		キーボードのQキー．
 			///	</summary>
-			static const __KeysData	Q;
+			static const _KeysData	Q;
 			///	<summary>
 			///		キーボードのRキー．
 			///	</summary>
-			static const __KeysData	R;
+			static const _KeysData	R;
 			///	<summary>
 			///		キーボードのSキー．
 			///	</summary>
-			static const __KeysData	S;
+			static const _KeysData	S;
 			///	<summary>
 			///		キーボードのTキー．
 			///	</summary>
-			static const __KeysData	T;
+			static const _KeysData	T;
 			///	<summary>
 			///		キーボードのUキー．
 			///	</summary>
-			static const __KeysData	U;
+			static const _KeysData	U;
 			///	<summary>
 			///		キーボードのVキー．
 			///	</summary>
-			static const __KeysData	V;
+			static const _KeysData	V;
 			///	<summary>
 			///		キーボードのWキー．
 			///	</summary>
-			static const __KeysData	W;
+			static const _KeysData	W;
 			///	<summary>
 			///		キーボードのXキー．
 			///	</summary>
-			static const __KeysData	X;
+			static const _KeysData	X;
 			///	<summary>
 			///		キーボードのYキー．
 			///	</summary>
-			static const __KeysData	Y;
+			static const _KeysData	Y;
 			///	<summary>
 			///		キーボードのZキー．
 			///	</summary>
-			static const __KeysData	Z;
+			static const _KeysData	Z;
 			///	<summary>
 			///		キーボードの1キー．
 			///	</summary>
-			static const __KeysData	N1;
+			static const _KeysData	N1;
 			///	<summary>
 			///		キーボードの2キー．
 			///	</summary>
-			static const __KeysData	N2;
+			static const _KeysData	N2;
 			///	<summary>
 			///		キーボードの3キー．
 			///	</summary>
-			static const __KeysData	N3;
+			static const _KeysData	N3;
 			///	<summary>
 			///		キーボードの4キー．
 			///	</summary>
-			static const __KeysData	N4;
+			static const _KeysData	N4;
 			///	<summary>
 			///		キーボードの5キー．
 			///	</summary>
-			static const __KeysData	N5;
+			static const _KeysData	N5;
 			///	<summary>
 			///		キーボードの6キー．
 			///	</summary>
-			static const __KeysData	N6;
+			static const _KeysData	N6;
 			///	<summary>
 			///		キーボードの7キー．
 			///	</summary>
-			static const __KeysData	N7;
+			static const _KeysData	N7;
 			///	<summary>
 			///		キーボードの8キー．
 			///	</summary>
-			static const __KeysData	N8;
+			static const _KeysData	N8;
 			///	<summary>
 			///		キーボードの9キー．
 			///	</summary>
-			static const __KeysData	N9;
+			static const _KeysData	N9;
 			///	<summary>
 			///		キーボードの0キー．
 			///	</summary>
-			static const __KeysData	N0;
+			static const _KeysData	N0;
 			///	<summary>
 			///		キーボードのEnterキー．
 			///	</summary>
-			static const __KeysData	Enter;
+			static const _KeysData	Enter;
 			///	<summary>
 			///		キーボードのEscキー．
 			///	</summary>
-			static const __KeysData	Escape;
+			static const _KeysData	Escape;
 			///	<summary>
 			///		キーボードのTabキー．
 			///	</summary>
-			static const __KeysData	Tab;
+			static const _KeysData	Tab;
 			///	<summary>
 			///		キーボードの両Shiftキー．
 			///	</summary>
-			static const __KeysData	Shift;
+			static const _KeysData	Shift;
 			///	<summary>
 			///		キーボードの両Ctrlキー．
 			///	</summary>
-			static const __KeysData	Control;
+			static const _KeysData	Control;
 			///	<summary>
 			///		キーボードの両Altキー．
 			///	</summary>
-			static const __KeysData	Alt;
+			static const _KeysData	Alt;
 			///	<summary>
 			///		キーボードのSpaceキー．
 			///	</summary>
-			static const __KeysData	Space;
+			static const _KeysData	Space;
 			///	<summary>
 			///		キーボードのBackSpaceキー．
 			///	</summary>
-			static const __KeysData	BackSpace;
+			static const _KeysData	BackSpace;
 			///	<summary>
 			///		キーボードのDeleteキー．
 			///	</summary>
-			static const __KeysData	Delete;
+			static const _KeysData	Delete;
 			///	<summary>
 			///		キーボードの上キー．
 			///	</summary>
-			static const __KeysData	Up;
+			static const _KeysData	Up;
 			///	<summary>
 			///		キーボードの左キー．
 			///	</summary>
-			static const __KeysData	Left;
+			static const _KeysData	Left;
 			///	<summary>
 			///		キーボードの右キー．
 			///	</summary>
-			static const __KeysData	Right;
+			static const _KeysData	Right;
 			///	<summary>
 			///		キーボードの下キー．
 			///	</summary>
-			static const __KeysData	Down;
+			static const _KeysData	Down;
 		};
 	}
 }

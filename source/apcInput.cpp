@@ -29,7 +29,7 @@ bool			KeyBoard::AnyPushing()
 // ----------------------------------------------------
 //	Key::KeyPushing
 // ----------------------------------------------------
-UINT			KeyBoard::Pushing(const __KeysData &TargetKey)
+UINT			KeyBoard::Pushing(const _KeysData &TargetKey)
 {
 	// 結果返却用
 	int Result = 0;
@@ -53,7 +53,7 @@ UINT			KeyBoard::Pushing(const __KeysData &TargetKey)
 // ----------------------------------------------------
 //	Key::KeyPushStarted
 // ----------------------------------------------------
-bool			KeyBoard::PushStart(const __KeysData &TargetKey)
+bool			KeyBoard::PushStart(const _KeysData &TargetKey)
 {
 	// 結果返却用
 	bool Result = false, NowTime = false;
@@ -77,7 +77,7 @@ bool			KeyBoard::PushStart(const __KeysData &TargetKey)
 // ----------------------------------------------------
 //	Key::KeyPushStarted
 // ----------------------------------------------------
-bool			KeyBoard::OutStart(const __KeysData &TargetKey)
+bool			KeyBoard::OutStart(const _KeysData &TargetKey)
 {
 	// 結果返却用
 	bool Result = false, NowTime = false;
@@ -259,9 +259,11 @@ void			Mouse::SetPosition(int X, int Y)
 // ----------------------------------------------------
 String			Mouse::ToString() const
 {
-	// 左の押されてる時間 / 右の押されてる時間
-	return String() << _T("Left: ") << LeftPushing()
-		<< _T(", Right: ") << RightPushing();
+	// 左の押されてる時間 / 右の押されてる時間 / 現在の座標
+	return String()
+		<< _T("Left: ") << LeftPushing()
+		<< _T(", Right: ") << RightPushing()
+		<< _T(", Point: ") << _MouseLocation;
 }
 
 // ----------------------------------------------------
@@ -323,11 +325,11 @@ void			Mouse::_CheckMouseEvent()
 }
 
 // ----------------------------------------------------
-//	__KeysData
+//	_KeysData
 // ----------------------------------------------------
-//	__KeysData::__KeysData (Constructor)
+//	_KeysData::_KeysData (Constructor)
 // ----------------------------------------------------
-				__KeysData::__KeysData()
+				_KeysData::_KeysData()
 {
 	// 初期化
 	_CheckKeyList.clear();
@@ -336,9 +338,9 @@ void			Mouse::_CheckMouseEvent()
 }
 
 // ----------------------------------------------------
-//	__KeysData::__KeysData (Constructor)
+//	_KeysData::_KeysData (Constructor)
 // ----------------------------------------------------
-				__KeysData::__KeysData(int FstKey)
+				_KeysData::_KeysData(int FstKey)
 {
 	// 初期化
 	_CheckKeyList.clear();
@@ -349,9 +351,9 @@ void			Mouse::_CheckMouseEvent()
 }
 
 // ----------------------------------------------------
-//	__KeysData::__KeysData (Constructor)
+//	_KeysData::_KeysData (Constructor)
 // ----------------------------------------------------
-				__KeysData::__KeysData(int FstKey_1, int FstKey_2)
+				_KeysData::_KeysData(int FstKey_1, int FstKey_2)
 {
 	// 初期化
 	_CheckKeyList.clear();
@@ -363,25 +365,25 @@ void			Mouse::_CheckMouseEvent()
 }
 
 // ----------------------------------------------------
-//	__KeysData::__KeysData (Constructor)
+//	_KeysData::_KeysData (Constructor)
 // ----------------------------------------------------
-				__KeysData::__KeysData(int Fst__KeysData[], size_t Size)
+				_KeysData::_KeysData(int Fst_KeysData[], size_t Size)
 {
 	// 初期化
 	_CheckKeyList.clear();
 	// ループを回す
 	for(size_t i = 0; i < Size; i++){
 		// 追加
-		_CheckKeyList.insert(Fst__KeysData[i]);
+		_CheckKeyList.insert(Fst_KeysData[i]);
 	}
 	// 判定モードを指定
 	IsCheckAllKey = false;
 }
 
 // ----------------------------------------------------
-//	__KeysData::Compare
+//	_KeysData::Compare
 // ----------------------------------------------------
-bool			__KeysData::Compare(const __KeysData &KeyList) const
+bool			_KeysData::Compare(const _KeysData &KeyList) const
 {
 	// もしサイズが違うなら
 	if(_Size() != KeyList._Size()){
@@ -400,35 +402,35 @@ bool			__KeysData::Compare(const __KeysData &KeyList) const
 }
 
 // ----------------------------------------------------
-//	__KeysData::operator+
+//	_KeysData::operator+
 // ----------------------------------------------------
-__KeysData&		__KeysData::operator+(const __KeysData &KeyList) const
+_KeysData&		_KeysData::operator+(const _KeysData &KeyList) const
 {
 	// 自身をコピー
-	__KeysData* New__KeysData = new __KeysData(*this);
+	_KeysData* New_KeysData = new _KeysData(*this);
 	// 引数を追加
-	*New__KeysData += KeyList;
+	*New_KeysData += KeyList;
 	// 返却
-	return *New__KeysData;
+	return *New_KeysData;
 }
 
 // ----------------------------------------------------
-//	__KeysData::operator-
+//	_KeysData::operator-
 // ----------------------------------------------------
-__KeysData&		__KeysData::operator-(const __KeysData &KeyList) const
+_KeysData&		_KeysData::operator-(const _KeysData &KeyList) const
 {
 	// 自身をコピー
-	__KeysData* New__KeysData = new __KeysData(*this);
+	_KeysData* New_KeysData = new _KeysData(*this);
 	// 引数を引く
-	*New__KeysData -= KeyList;
+	*New_KeysData -= KeyList;
 	// 返却
-	return *New__KeysData;
+	return *New_KeysData;
 }
 
 // ----------------------------------------------------
-//	__KeysData::operator+=
+//	_KeysData::operator+=
 // ----------------------------------------------------
-__KeysData&		__KeysData::operator+=(const __KeysData &KeyList)
+_KeysData&		_KeysData::operator+=(const _KeysData &KeyList)
 {
 	// 追加していく
 	for(size_t i = 0; i < KeyList._Size(); i++){
@@ -439,9 +441,9 @@ __KeysData&		__KeysData::operator+=(const __KeysData &KeyList)
 }
 
 // ----------------------------------------------------
-//	__KeysData::operator-=
+//	_KeysData::operator-=
 // ----------------------------------------------------
-__KeysData&		__KeysData::operator-=(const __KeysData &KeyList)
+_KeysData&		_KeysData::operator-=(const _KeysData &KeyList)
 {
 	// 削除していく
 	for(size_t i = 0; i < KeyList._Size(); i++){
@@ -452,35 +454,35 @@ __KeysData&		__KeysData::operator-=(const __KeysData &KeyList)
 }
 
 // ----------------------------------------------------
-//	__KeysData::operator&&
+//	_KeysData::operator&&
 // ----------------------------------------------------
-bool			__KeysData::operator&&(int Key) const
+bool			_KeysData::operator&&(int Key) const
 {
 	// 値が含まれているならtrue
 	return (_CheckKeyList.count(Key) >= 1);
 }
 
 // ----------------------------------------------------
-//	__KeysData::operator==
+//	_KeysData::operator==
 // ----------------------------------------------------
-bool			__KeysData::operator==(const __KeysData &KeyList) const
+bool			_KeysData::operator==(const _KeysData &KeyList) const
 {
 	return Compare(KeyList);
 }
 
 // ----------------------------------------------------
-//	__KeysData::_Size
+//	_KeysData::_Size
 // ----------------------------------------------------
-size_t			__KeysData::_Size() const
+size_t			_KeysData::_Size() const
 {
 	// サイズを返却
 	return _CheckKeyList.size();
 }
 
 // ----------------------------------------------------
-//	__KeysData::_Get
+//	_KeysData::_Get
 // ----------------------------------------------------
-int				__KeysData::_Get(int Val) const
+int				_KeysData::_Get(int Val) const
 {
 	// イテレータ
 	auto Iterator = _CheckKeyList.begin();
@@ -503,51 +505,51 @@ int				__KeysData::_Get(int Val) const
 // ----------------------------------------------------
 //	Initialization
 // ----------------------------------------------------
-const __KeysData		Key::A			(KEY_INPUT_A);
-const __KeysData		Key::B			(KEY_INPUT_B);
-const __KeysData		Key::C			(KEY_INPUT_C);
-const __KeysData		Key::D			(KEY_INPUT_D);
-const __KeysData		Key::E			(KEY_INPUT_E);
-const __KeysData		Key::F			(KEY_INPUT_F);
-const __KeysData		Key::G			(KEY_INPUT_G);
-const __KeysData		Key::H			(KEY_INPUT_H);
-const __KeysData		Key::I			(KEY_INPUT_I);
-const __KeysData		Key::J			(KEY_INPUT_J);
-const __KeysData		Key::K			(KEY_INPUT_K);
-const __KeysData		Key::L			(KEY_INPUT_L);
-const __KeysData		Key::M			(KEY_INPUT_M);
-const __KeysData		Key::N			(KEY_INPUT_N);
-const __KeysData		Key::O			(KEY_INPUT_O);
-const __KeysData		Key::P			(KEY_INPUT_P);
-const __KeysData		Key::Q			(KEY_INPUT_Q);
-const __KeysData		Key::R			(KEY_INPUT_R);
-const __KeysData		Key::S			(KEY_INPUT_S);
-const __KeysData		Key::T			(KEY_INPUT_T);
-const __KeysData		Key::U			(KEY_INPUT_U);
-const __KeysData		Key::V			(KEY_INPUT_V);
-const __KeysData		Key::W			(KEY_INPUT_W);
-const __KeysData		Key::X			(KEY_INPUT_X);
-const __KeysData		Key::Y			(KEY_INPUT_Y);
-const __KeysData		Key::Z			(KEY_INPUT_Z);
-const __KeysData		Key::N1			(KEY_INPUT_1,			KEY_INPUT_NUMPAD1);
-const __KeysData		Key::N2			(KEY_INPUT_2,			KEY_INPUT_NUMPAD2);
-const __KeysData		Key::N3			(KEY_INPUT_3,			KEY_INPUT_NUMPAD3);
-const __KeysData		Key::N4			(KEY_INPUT_4,			KEY_INPUT_NUMPAD4);
-const __KeysData		Key::N5			(KEY_INPUT_5,			KEY_INPUT_NUMPAD5);
-const __KeysData		Key::N6			(KEY_INPUT_6,			KEY_INPUT_NUMPAD6);
-const __KeysData		Key::N7			(KEY_INPUT_7,			KEY_INPUT_NUMPAD7);
-const __KeysData		Key::N8			(KEY_INPUT_8,			KEY_INPUT_NUMPAD8);
-const __KeysData		Key::N9			(KEY_INPUT_9,			KEY_INPUT_NUMPAD9);
-const __KeysData		Key::N0			(KEY_INPUT_0,			KEY_INPUT_NUMPAD0);
-const __KeysData		Key::Enter		(KEY_INPUT_RETURN);
-const __KeysData		Key::Escape		(KEY_INPUT_ESCAPE);
-const __KeysData		Key::Tab		(KEY_INPUT_TAB);
-const __KeysData		Key::Shift		(KEY_INPUT_LSHIFT,		KEY_INPUT_RSHIFT);
-const __KeysData		Key::Control	(KEY_INPUT_LCONTROL,	KEY_INPUT_RCONTROL);
-const __KeysData		Key::Alt		(KEY_INPUT_LALT,		KEY_INPUT_RALT);
-const __KeysData		Key::Space		(KEY_INPUT_SPACE);
-const __KeysData		Key::Up			(KEY_INPUT_UP);
-const __KeysData		Key::Left		(KEY_INPUT_LEFT);
-const __KeysData		Key::Right		(KEY_INPUT_RIGHT);
-const __KeysData		Key::Down		(KEY_INPUT_DOWN);
+const _KeysData		Key::A			(KEY_INPUT_A);
+const _KeysData		Key::B			(KEY_INPUT_B);
+const _KeysData		Key::C			(KEY_INPUT_C);
+const _KeysData		Key::D			(KEY_INPUT_D);
+const _KeysData		Key::E			(KEY_INPUT_E);
+const _KeysData		Key::F			(KEY_INPUT_F);
+const _KeysData		Key::G			(KEY_INPUT_G);
+const _KeysData		Key::H			(KEY_INPUT_H);
+const _KeysData		Key::I			(KEY_INPUT_I);
+const _KeysData		Key::J			(KEY_INPUT_J);
+const _KeysData		Key::K			(KEY_INPUT_K);
+const _KeysData		Key::L			(KEY_INPUT_L);
+const _KeysData		Key::M			(KEY_INPUT_M);
+const _KeysData		Key::N			(KEY_INPUT_N);
+const _KeysData		Key::O			(KEY_INPUT_O);
+const _KeysData		Key::P			(KEY_INPUT_P);
+const _KeysData		Key::Q			(KEY_INPUT_Q);
+const _KeysData		Key::R			(KEY_INPUT_R);
+const _KeysData		Key::S			(KEY_INPUT_S);
+const _KeysData		Key::T			(KEY_INPUT_T);
+const _KeysData		Key::U			(KEY_INPUT_U);
+const _KeysData		Key::V			(KEY_INPUT_V);
+const _KeysData		Key::W			(KEY_INPUT_W);
+const _KeysData		Key::X			(KEY_INPUT_X);
+const _KeysData		Key::Y			(KEY_INPUT_Y);
+const _KeysData		Key::Z			(KEY_INPUT_Z);
+const _KeysData		Key::N1			(KEY_INPUT_1,			KEY_INPUT_NUMPAD1);
+const _KeysData		Key::N2			(KEY_INPUT_2,			KEY_INPUT_NUMPAD2);
+const _KeysData		Key::N3			(KEY_INPUT_3,			KEY_INPUT_NUMPAD3);
+const _KeysData		Key::N4			(KEY_INPUT_4,			KEY_INPUT_NUMPAD4);
+const _KeysData		Key::N5			(KEY_INPUT_5,			KEY_INPUT_NUMPAD5);
+const _KeysData		Key::N6			(KEY_INPUT_6,			KEY_INPUT_NUMPAD6);
+const _KeysData		Key::N7			(KEY_INPUT_7,			KEY_INPUT_NUMPAD7);
+const _KeysData		Key::N8			(KEY_INPUT_8,			KEY_INPUT_NUMPAD8);
+const _KeysData		Key::N9			(KEY_INPUT_9,			KEY_INPUT_NUMPAD9);
+const _KeysData		Key::N0			(KEY_INPUT_0,			KEY_INPUT_NUMPAD0);
+const _KeysData		Key::Enter		(KEY_INPUT_RETURN);
+const _KeysData		Key::Escape		(KEY_INPUT_ESCAPE);
+const _KeysData		Key::Tab		(KEY_INPUT_TAB);
+const _KeysData		Key::Shift		(KEY_INPUT_LSHIFT,		KEY_INPUT_RSHIFT);
+const _KeysData		Key::Control	(KEY_INPUT_LCONTROL,	KEY_INPUT_RCONTROL);
+const _KeysData		Key::Alt		(KEY_INPUT_LALT,		KEY_INPUT_RALT);
+const _KeysData		Key::Space		(KEY_INPUT_SPACE);
+const _KeysData		Key::Up			(KEY_INPUT_UP);
+const _KeysData		Key::Left		(KEY_INPUT_LEFT);
+const _KeysData		Key::Right		(KEY_INPUT_RIGHT);
+const _KeysData		Key::Down		(KEY_INPUT_DOWN);
 

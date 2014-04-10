@@ -13,6 +13,7 @@
 #include <dxlib/DxLib.h>
 #include <boost/function.hpp>
 #include <include/apcClassBase.hpp>
+#include <include/apcValue.hpp>
 #include <include/apcSequence.hpp>
 #include <include/apxTemplate.hpp>
 
@@ -26,8 +27,8 @@ namespace Apocalypse
 		// --------------------------------------------------------
 		//	Typedef
 		// --------------------------------------------------------
-		typedef boost::function<std::shared_ptr<Sequence::Sequencer>()>	SeqFunc;
-		typedef	boost::function<bool()>									ExitFunc;
+		typedef boost::function<Sequence::Sequencer*()>	SeqFunc;
+		typedef	boost::function<bool()>					ExitFunc;
 
 		/// <summary>
 		///		システムを動かすための各種初期設定項目をまとめたクラス．
@@ -51,7 +52,7 @@ namespace Apocalypse
 		///		}
 		///		</code>
 		/// </example>
-		class ApplicationConfig : public Base::__ApcBase
+		class ApplicationConfig : public Base::_ApcBase
 		{
 		public:
 			/// <summary>
@@ -80,7 +81,7 @@ namespace Apocalypse
 			static Value::String	DefaultFontName;
 			/// <summary>
 			///		<para>初期シーケンスを指定する関数を登録します．必ず指定する必要があります．</para>
-			///		<para>戻り値がshared_ptr(Sequence::Sequencer)の引数無し関数を指定します．</para>
+			///		<para>戻り値がSequence::Sequencerのポインタの引数無し関数を指定します．</para>
 			///		<para>戻り値に指定したSequencerが初期シーケンスとなります．</para>
 			/// </summary>
 			/// <example>
@@ -146,12 +147,12 @@ namespace Apocalypse
 		///		<para>このクラス内では，ゲームの起動と終了関連の処理を行います．</para>
 		///		<para>ApcSetup関数は独自に実装する必要があります．</para>
 		/// </remarks>
-		class __ApcSystem : public Template::__Singleton<__ApcSystem>
+		class _System : public Template::_Singleton<_System>
 		{
 			/// <summary>
 			///		Singletonクラスは全てのメンバにアクセス可能です．
 			/// </summary>
-			friend class		Template::__Singleton<__ApcSystem>;
+			friend class			Template::_Singleton<_System>;
 		public:
 			/// <summary>
 			///		Apocalypse起動前のセットアップを行う関数です．
@@ -168,40 +169,79 @@ namespace Apocalypse
 			///		}
 			///		</code>
 			/// </example>
-			void				ApcSetUp() const;
+			void					ApcSetUp() const;
 			/// <summary>
 			///		起動する
 			/// </summary>
-			bool				ApcStart() const;
+			bool					ApcStart() const;
 			/// <summary>
 			///		１フレーム毎に必要な動作を行う．
 			/// </summary>
-			bool				ApcProcess() const;
+			bool					ApcProcess() const;
 			/// <summary>
 			///		ゲームを終了する．
 			/// </summary>
-			void				ApcEnd() const;
+			void					ApcEnd() const;
 		private:
 			/// <summary>
 			///		コンストラクタ
 			/// </summary>
-								__ApcSystem();
+									_System();
 			/// <summary>
 			///		プログラムの基準ディレクトリを設定する． 
 			/// </summary>
-			void				_SetProgramDirectory() const;
+			void					_SetProgramDirectory() const;
 			/// <summary>
 			///		ゲーム起動前に各種設定を行う．
 			/// </summary>
-			void				_InitGameProcess() const;
+			void					_InitGameProcess() const;
 			/// <summary>
 			///		ゲームを起動する．
 			/// </summary>
-			void				_RunStartProcess() const;
+			void					_RunStartProcess() const;
 			/// <summary>
 			///		ゲームを終了する．
 	/// </summary>
-			void				_RunEndProcess() const;
+			void					_RunEndProcess() const;
+		};
+
+		///	<summary>
+		///		起動してからのフレーム数を取得する．単純増加するカウンタとしても使用可能．
+		///	</summary>
+		/// <remarks>
+		///		このクラスはsingletonです．
+		/// </remarks>
+		/// <example>
+		///		使用例: 
+		///		<code>
+		///		// 現在のカウンタ値を取得する
+		///		int Counter = FrameCounter::GetCount();
+		///		</code>
+		/// </example>
+		class _FrameCounter : public Template::_Singleton<_FrameCounter>
+		{
+			/// <summary>
+			///		Singletonクラスは全てのメンバにアクセス可能です．
+			/// </summary>
+			friend class			Template::_Singleton<_FrameCounter>;
+		public:
+			/// <summary>
+			///		カウント数を取得する関数．
+			/// </summary>
+			static double			GetCount();
+			/// <summary>
+			///		カウント数を増加させる関数．1フレームに一度だけ呼ぶ．
+			/// </summary>
+			void					_CountAdd();
+		private:
+			/// <summary>
+			///		Countructor．
+			/// </summary>
+									_FrameCounter();
+			/// <summary>
+			///		カウント数を保存しておく変数．
+			/// </summary>
+			double					_Value;
 		};
 	}
 }
